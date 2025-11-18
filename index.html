@@ -1,65 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>納音五行速查 (準確版)</title>
+    <title>年日月三柱納音自動速查</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* 網頁基本樣式，讓畫面更清楚 */
+        /* 網頁樣式 */
         body { font-family: 'Microsoft JhengHei', Arial, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; }
-        .container { max-width: 450px; margin: 30px auto; padding: 30px; border: 1px solid #ddd; border-radius: 10px; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .container { max-width: 650px; margin: 20px auto; padding: 30px; border: 1px solid #ddd; border-radius: 10px; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         h1 { color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 10px; margin-bottom: 20px; }
-        input, button { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; }
+        .input-group { margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 5px; }
+        input[type="number"], button { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; }
         button { background-color: #0066cc; color: white; cursor: pointer; border: none; transition: background-color 0.3s; }
         button:hover { background-color: #0052a3; }
-        #result { margin-top: 25px; font-size: 1.4em; font-weight: bold; color: #cc0000; padding: 10px; border: 2px dashed #ffc0cb; border-radius: 5px; background-color: #fff0f5; }
-        .note { font-size: 0.8em; color: #666; margin-top: 20px; }
+        .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 25px; }
+        .result-item { border: 2px solid #ddd; padding: 15px 5px; border-radius: 5px; background-color: #fff0f5; }
+        .result-item h3 { margin: 0 0 5px 0; font-size: 1em; color: #666; }
+        .ganzhi-value { font-size: 1.2em; font-weight: bold; color: #0066cc; margin-bottom: 5px; }
+        .nayin-value { font-size: 1.1em; font-weight: bold; color: #cc0000; }
+        .note { font-size: 0.8em; color: #666; margin-top: 20px; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>納音五行速查</h1>
-    <p>請輸入您的**出生年月日**，系統會以立春準確對應農曆年命。</p>
+    <h1>年、月、日三柱納音自動速查</h1>
     
-    <input type="number" id="birthYear" placeholder="年份：例如 1984" min="1950" max="2050">
-    <input type="number" id="birthMonth" placeholder="月份：例如 2" min="1" max="12">
-    <input type="number" id="birthDay" placeholder="日期：例如 4" min="1" max="31">
+    <div class="input-group">
+        <h2>請輸入國曆生日</h2>
+        <input type="number" id="birthYear" placeholder="年份：例如 1984" min="1950" max="2050">
+        <input type="number" id="birthMonth" placeholder="月份：例如 2" min="1" max="12">
+        <input type="number" id="birthDay" placeholder="日期：例如 4" min="1" max="31">
+    </div>
     
-    <button onclick="calculateNayin()">快速查找納音五行</button>
+    <button onclick="calculateNayin()">自動計算納音五行</button>
     
-    <div id="result">請輸入日期進行查找</div>
+    <div class="result-grid" id="result">
+        <div class="result-item"><h3>年柱</h3><div class="ganzhi-value" id="ganzhi_year">---</div><div class="nayin-value" id="nayin_year">待計算</div></div>
+        <div class="result-item"><h3>月柱</h3><div class="ganzhi-value" id="ganzhi_month">---</div><div class="nayin-value" id="nayin_month">待計算</div></div>
+        <div class="result-item"><h3>日柱</h3><div class="ganzhi-value" id="ganzhi_day">---</div><div class="nayin-value" id="nayin_day">待計算</div></div>
+    </div>
     
     <p class="note">
-        * 本計算採用 1950-2050 年的**預設立春日期**進行判斷。<br>
-        * 納音五行結果是以**年命**為基礎。
+        * 本程式碼已自動計算年、月、日三柱。無需外部查找。<br>
+        * 月柱計算使用了節氣近似值。時柱計算因涉及「真太陽時」調整，過於複雜，故本程式碼未包含。
     </p>
 </div>
 
 <script>
 // =======================================================
-// 1. 納音五行查找表 (從 1900 庚子年開始)
-// 1900 庚子年對應 '壁上土' (索引 20)
+// 數據結構定義
 // =======================================================
-const NAYIN_TABLE = [
-    // 1900 庚子年 (索引 20)
-    "白蠟金", "白蠟金", "楊柳木", "楊柳木", "井泉水", "井泉水", "屋上土", "屋上土", "霹靂火", "霹靂火",
-    "松柏木", "松柏木", "長流水", "長流水", "沙中金", "沙中金", "山下火", "山下火", "平地木", "平地木",
-    "壁上土", "壁上土", "金箔金", "金箔金", "覆燈火", "覆燈火", "天河水", "天河水", "大驛土", "大驛土",
-    "釵釧金", "釵釧金", "桑柘木", "桑柘木", "大溪水", "大溪水", "沙中土", "沙中土", "天上火", "天上火",
-    "石榴木", "石榴木", "大海水", "大海水", "海中金", "海中金", "爐中火", "爐中火", "大林木", "大林木",
-    "路旁土", "路旁土", "劍鋒金", "劍鋒金", "山頭火", "山頭火", "澗下水", "澗下水",
-    "城頭土", "城頭土", "白蠟金", "白蠟金", "楊柳木", "楊柳木", "井泉水", "井泉水", "屋上土", "屋上土",
-    "霹靂火", "霹靂火", "松柏木", "松柏木", "長流水", "長流水", "沙中金", "沙中金", "山下火", "山下火",
-    "平地木", "平地木", "壁上土", "壁上土", "金箔金", "金箔金", "覆燈火", "覆燈火", "天河水", "天河水",
-    "大驛土", "大驛土", "釵釧金", "釵釧金", "桑柘木", "桑柘木", "大溪水", "大溪水", "沙中土", "沙中土",
-    "天上火", "天上火", "石榴木", "石榴木", "大海水", "大海水", "海中金", "海中金", "爐中火", "爐中火",
+const TIAN_GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+const DI_ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+
+// 1. 納音五行查找表 (60 甲子，索引 0 = 甲子)
+const NAYIN_60_MAP = [
+    '海中金', '海中金', '爐中火', '爐中火', '大林木', '大林木', '路旁土', '路旁土', '劍鋒金', '劍鋒金',
+    '山頭火', '山頭火', '澗下水', '澗下水', '城頭土', '城頭土', '白蠟金', '白蠟金', '楊柳木', '楊柳木',
+    '井泉水', '井泉水', '屋上土', '屋上土', '霹靂火', '霹靂火', '松柏木', '松柏木', '長流水', '長流水',
+    '沙中金', '沙中金', '山下火', '山下火', '平地木', '平地木', '壁上土', '壁上土', '金箔金', '金箔金',
+    '覆燈火', '覆燈火', '天河水', '天河水', '大驛土', '大驛土', '釵釧金', '釵釧金', '桑柘木', '桑柘木',
+    '大溪水', '大溪水', '沙中土', '沙中土', '天上火', '天上火', '石榴木', '石榴木', '大海水', '大海水'
 ];
 
-// =======================================================
-// 2. 立春日期對照表 (用於判斷國曆換算農曆年，以月/日為準)
-// 數據為該年的立春日。如果出生日在立春日期之前，則算作前一年的年命。
-// =======================================================
+// 2. 年柱立春對照表 (用於判斷農曆年命) - 數據來自原先版本 (1980-2050)
 const LICHUN_MAP = {
     '1980': '2/5', '1981': '2/4', '1982': '2/4', '1983': '2/4', '1984': '2/4', '1985': '2/4',
     '1986': '2/4', '1987': '2/4', '1988': '2/4', '1989': '2/4', '1990': '2/4', '1991': '2/4',
@@ -73,60 +78,191 @@ const LICHUN_MAP = {
     '2034': '2/4', '2035': '2/4', '2036': '2/4', '2037': '2/3', '2038': '2/4', '2039': '2/4',
     '2040': '2/4', '2041': '2/3', '2042': '2/4', '2043': '2/4', '2044': '2/4', '2045': '2/3',
     '2046': '2/4', '2047': '2/4', '2048': '2/4', '2049': '2/3', '2050': '2/4', 
-    // 注意：1950-1979 年的立春多數是 2/5 (但為簡化，此表從 1980 開始)
 };
 
+// 3. 月柱干支查找表 (五虎遁) - 根據年干定寅月干支
+// 索引 0=甲年, 1=乙年, ..., 9=癸年
+// 陣列值：該年 (甲子年) 的寅月干支索引 (甲寅=0, 丙寅=2, 戊寅=4, 庚寅=6, 壬寅=8)
+const WU_HU_DUN_START = [0, 2, 4, 6, 8, 0, 2, 4, 6, 8]; 
+
+// 4. 節氣轉換表 (簡化近似版，用於月柱判斷，更準確的版本需要更大量的數據)
+const JIE_QI_MONTH_MAP = [
+    { month: 1, day: 6, branch: '丑' }, // 小寒，對應丑月 (國曆1月)
+    { month: 2, day: 4, branch: '寅' }, // 立春，對應寅月 (國曆2月)
+    { month: 3, day: 6, branch: '卯' }, // 驚蟄，對應卯月 (國曆3月)
+    { month: 4, day: 5, branch: '辰' }, // 清明，對應辰月 (國曆4月)
+    { month: 5, day: 6, branch: '巳' }, // 立夏，對應巳月 (國曆5月)
+    { month: 6, day: 6, branch: '午' }, // 芒種，對應午月 (國曆6月)
+    { month: 7, day: 7, branch: '未' }, // 小暑，對應未月 (國曆7月)
+    { month: 8, day: 8, branch: '申' }, // 立秋，對應申月 (國曆8月)
+    { month: 9, day: 8, branch: '酉' }, // 白露，對應酉月 (國曆9月)
+    { month: 10, day: 8, branch: '戌' }, // 寒露，對應戌月 (國曆10月)
+    { month: 11, day: 8, branch: '亥' }, // 立冬，對應亥月 (國曆11月)
+    { month: 12, day: 7, branch: '子' }  // 大雪，對應子月 (國曆12月)
+];
+
+
 // =======================================================
-// 3. 核心計算函數
+// 輔助功能函數 (用於日柱的萬年曆計算)
+// =======================================================
+
+// 1. 判斷是否為閏年
+function isLeap(year) {
+    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+}
+
+// 2. 計算從 1900/1/1 到目標日期之間經過的總天數
+function daysSince1900(year, month, day) {
+    const DAYS_IN_MONTH = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let totalDays = 0;
+
+    // 計算經過整年的天數
+    for (let y = 1900; y < year; y++) {
+        totalDays += isLeap(y) ? 366 : 365;
+    }
+
+    // 計算經過整月的天數
+    for (let m = 1; m < month; m++) {
+        let days = DAYS_IN_MONTH[m];
+        if (m === 2 && isLeap(year)) {
+            days = 29;
+        }
+        totalDays += days;
+    }
+
+    // 加上當月的天數
+    totalDays += day;
+    
+    // 1900/1/1 本身算第 1 天，但公式習慣從 0 開始，所以要減 1
+    return totalDays - 1; 
+}
+
+// 3. 根據干支索引查找納音
+function getNayinFromIndex(index) {
+    if (index < 0 || index >= 60) return "---";
+    return NAYIN_60_MAP[index];
+}
+
+
+// =======================================================
+// 核心計算函數
 // =======================================================
 function calculateNayin() {
+    // 1. 獲取輸入
     const year = parseInt(document.getElementById('birthYear').value);
     const month = parseInt(document.getElementById('birthMonth').value);
     const day = parseInt(document.getElementById('birthDay').value);
-    const resultDiv = document.getElementById('result');
+    
+    // 重設結果
+    document.getElementById('ganzhi_year').textContent = "---";
+    document.getElementById('nayin_year').textContent = "---";
+    document.getElementById('ganzhi_month').textContent = "---";
+    document.getElementById('nayin_month').textContent = "---";
+    document.getElementById('ganzhi_day').textContent = "---";
+    document.getElementById('nayin_day').textContent = "---";
 
-    // 基礎檢查
     if (isNaN(year) || isNaN(month) || isNaN(day) || year < 1980 || year > 2050) {
-        resultDiv.innerHTML = "請輸入 1980 至 2050 年間有效的年月日。";
+        document.getElementById('ganzhi_year').textContent = "錯誤";
+        document.getElementById('nayin_year').textContent = "請輸入 1980-2050 年的年月日";
         return;
     }
-    
+
+
+    // ----------------------------------------------------------------
+    // 2. 年柱計算 (Year Pillar)
+    // ----------------------------------------------------------------
+    const startYear = 1900; // 1900 庚子年 (Index 36)
     const yearStr = year.toString();
     const lichunDateStr = LICHUN_MAP[yearStr];
-
-    if (!lichunDateStr) {
-        resultDiv.innerHTML = "年份超出立春對照表範圍 (1980-2050)。";
-        return;
-    }
-
-    const [lcMonth, lcDay] = lichunDateStr.split('/').map(Number);
-
+    
     let actualYear = year;
     
-    // 判斷是否在立春之前 (立春前算是上一個年命)
-    // 範例：如果立春是 2/4，但您是 2/3 出生，則算去年
-    if (month < lcMonth || (month === lcMonth && day < lcDay)) {
-        actualYear = year - 1;
+    // 根據立春判斷實際的農曆年
+    if (lichunDateStr) {
+        const [lcMonth, lcDay] = lichunDateStr.split('/').map(Number);
+        if (month < lcMonth || (month === lcMonth && day < lcDay)) {
+            actualYear = year - 1; // 立春前算去年
+        }
     }
-
-    // 查找表起點：1900 年是庚子年 (對應索引 20)
-    const startYear = 1900;
-    const yearDifference = actualYear - startYear;
     
-    // 計算索引並處理 60 年循環
-    // 1900 年是索引 20 (壁上土)，所以要加上差距
-    let nayinIndex = 20 + yearDifference;
-    nayinIndex = nayinIndex % 60; // 60 年一循環
+    // 計算年干支索引 (0-59)
+    const yearDifference = actualYear - startYear;
+    const yearGanZhiIndex = (36 + yearDifference) % 60; // 36 是 1900 庚子的索引
+    const yearGanIndex = yearGanZhiIndex % 10;
+    
+    // 顯示年柱干支與納音
+    const yearGan = TIAN_GAN[yearGanZhiIndex % 10];
+    const yearZhi = DI_ZHI[yearGanZhiIndex % 12];
+    document.getElementById('ganzhi_year').textContent = `${yearGan}${yearZhi}`;
+    document.getElementById('nayin_year').textContent = getNayinFromIndex(yearGanZhiIndex);
 
-    // 獲取最終結果
-    const finalNayin = NAYIN_TABLE[nayinIndex];
 
-    // 顯示結果
-    if (finalNayin) {
-        resultDiv.innerHTML = `您的**國曆** ${year} 年 <br>經立春判斷後，年命為：<span style="color:red; font-size:1.5em;">${finalNayin}</span>`;
-    } else {
-        resultDiv.innerHTML = "查找失敗，請檢查輸入。";
+    // ----------------------------------------------------------------
+    // 3. 月柱計算 (Month Pillar - 使用簡化節氣表)
+    // ----------------------------------------------------------------
+    
+    // 1. 判斷該國曆年月日落在哪個地支月
+    let currentZhiIndex = -1;
+    let currentMonthBranch = '---';
+    
+    // 查找該日期應該對應的地支月 (以節氣近似值判斷)
+    for (let i = 0; i < JIE_QI_MONTH_MAP.length; i++) {
+        const jq = JIE_QI_MONTH_MAP[i];
+        
+        if (month < jq.month || (month === jq.month && day < jq.day)) {
+            // 如果日期在該節氣前，則為上一個地支月
+            const prevIndex = (i - 1 + 12) % 12;
+            currentMonthBranch = JIE_QI_MONTH_MAP[prevIndex].branch;
+            currentZhiIndex = DI_ZHI.indexOf(currentMonthBranch);
+            break;
+        }
+        
+        // 如果是 12月的節氣之後，則算到 1月(寅月)之前
+        if (i === 11) {
+            currentMonthBranch = jq.branch; // 12月
+            currentZhiIndex = DI_ZHI.indexOf(currentMonthBranch);
+        }
     }
+    
+    // 2. 根據 年干 和 月支 判斷月干 (五虎遁)
+    // 月干起始點：寅月（索引 2）的干支索引 (0=甲, 2=丙, 4=戊...)
+    const yueGanStart = WU_HU_DUN_START[yearGanIndex];
+    
+    // 計算當前月支 (currentMonthBranch) 與 寅月 (寅 = 索引 2) 的距離
+    const yinZhiIndex = DI_ZHI.indexOf('寅');
+    const distanceToYin = (currentZhiIndex - yinZhiIndex + 12) % 12;
+    
+    // 換算月干索引
+    const monthGanIndex = (yueGanStart + distanceToYin) % 10;
+    
+    // 組合月柱干支並查找納音
+    const monthGan = TIAN_GAN[monthGanIndex];
+    const monthZhi = currentMonthBranch;
+    
+    const monthGanZhiIndex = (monthGanIndex * 6 + currentZhiIndex) % 60; // 簡化 GanZhi Index 計算
+    
+    document.getElementById('ganzhi_month').textContent = `${monthGan}${monthZhi}`;
+    document.getElementById('nayin_month').textContent = getNayinFromIndex(monthGanZhiIndex);
+
+
+    // ----------------------------------------------------------------
+    // 4. 日柱計算 (Day Pillar - 萬年曆算法)
+    // ----------------------------------------------------------------
+    // 基準日: 1900/1/1 是 丁酉 (索引 43)
+    const DAY_EPOCH_INDEX = 43; 
+
+    // 計算從 1900/1/1 經過的總天數
+    const totalDays = daysSince1900(year, month, day);
+    
+    // 計算日干支索引
+    const dayGanZhiIndex = (DAY_EPOCH_INDEX + totalDays) % 60;
+    
+    // 顯示日柱干支與納音
+    const dayGan = TIAN_GAN[dayGanZhiIndex % 10];
+    const dayZhi = DI_ZHI[dayGanZhiIndex % 12];
+    
+    document.getElementById('ganzhi_day').textContent = `${dayGan}${dayZhi}`;
+    document.getElementById('nayin_day').textContent = getNayinFromIndex(dayGanZhiIndex);
 }
 </script>
 
