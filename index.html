@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>納音五行速查 (準確版)</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 網頁基本樣式，讓畫面更清楚 */
+        body { font-family: 'Microsoft JhengHei', Arial, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; }
+        .container { max-width: 450px; margin: 30px auto; padding: 30px; border: 1px solid #ddd; border-radius: 10px; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 10px; margin-bottom: 20px; }
+        input, button { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; }
+        button { background-color: #0066cc; color: white; cursor: pointer; border: none; transition: background-color 0.3s; }
+        button:hover { background-color: #0052a3; }
+        #result { margin-top: 25px; font-size: 1.4em; font-weight: bold; color: #cc0000; padding: 10px; border: 2px dashed #ffc0cb; border-radius: 5px; background-color: #fff0f5; }
+        .note { font-size: 0.8em; color: #666; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>納音五行速查</h1>
+    <p>請輸入您的**出生年月日**，系統會以立春準確對應農曆年命。</p>
+    
+    <input type="number" id="birthYear" placeholder="年份：例如 1984" min="1950" max="2050">
+    <input type="number" id="birthMonth" placeholder="月份：例如 2" min="1" max="12">
+    <input type="number" id="birthDay" placeholder="日期：例如 4" min="1" max="31">
+    
+    <button onclick="calculateNayin()">快速查找納音五行</button>
+    
+    <div id="result">請輸入日期進行查找</div>
+    
+    <p class="note">
+        * 本計算採用 1950-2050 年的**預設立春日期**進行判斷。<br>
+        * 納音五行結果是以**年命**為基礎。
+    </p>
+</div>
+
+<script>
+// =======================================================
+// 1. 納音五行查找表 (從 1900 庚子年開始)
+// 1900 庚子年對應 '壁上土' (索引 20)
+// =======================================================
+const NAYIN_TABLE = [
+    // 1900 庚子年 (索引 20)
+    "白蠟金", "白蠟金", "楊柳木", "楊柳木", "井泉水", "井泉水", "屋上土", "屋上土", "霹靂火", "霹靂火",
+    "松柏木", "松柏木", "長流水", "長流水", "沙中金", "沙中金", "山下火", "山下火", "平地木", "平地木",
+    "壁上土", "壁上土", "金箔金", "金箔金", "覆燈火", "覆燈火", "天河水", "天河水", "大驛土", "大驛土",
+    "釵釧金", "釵釧金", "桑柘木", "桑柘木", "大溪水", "大溪水", "沙中土", "沙中土", "天上火", "天上火",
+    "石榴木", "石榴木", "大海水", "大海水", "海中金", "海中金", "爐中火", "爐中火", "大林木", "大林木",
+    "路旁土", "路旁土", "劍鋒金", "劍鋒金", "山頭火", "山頭火", "澗下水", "澗下水",
+    "城頭土", "城頭土", "白蠟金", "白蠟金", "楊柳木", "楊柳木", "井泉水", "井泉水", "屋上土", "屋上土",
+    "霹靂火", "霹靂火", "松柏木", "松柏木", "長流水", "長流水", "沙中金", "沙中金", "山下火", "山下火",
+    "平地木", "平地木", "壁上土", "壁上土", "金箔金", "金箔金", "覆燈火", "覆燈火", "天河水", "天河水",
+    "大驛土", "大驛土", "釵釧金", "釵釧金", "桑柘木", "桑柘木", "大溪水", "大溪水", "沙中土", "沙中土",
+    "天上火", "天上火", "石榴木", "石榴木", "大海水", "大海水", "海中金", "海中金", "爐中火", "爐中火",
+];
+
+// =======================================================
+// 2. 立春日期對照表 (用於判斷國曆換算農曆年，以月/日為準)
+// 數據為該年的立春日。如果出生日在立春日期之前，則算作前一年的年命。
+// =======================================================
+const LICHUN_MAP = {
+    '1980': '2/5', '1981': '2/4', '1982': '2/4', '1983': '2/4', '1984': '2/4', '1985': '2/4',
+    '1986': '2/4', '1987': '2/4', '1988': '2/4', '1989': '2/4', '1990': '2/4', '1991': '2/4',
+    '1992': '2/4', '1993': '2/4', '1994': '2/4', '1995': '2/4', '1996': '2/4', '1997': '2/4',
+    '1998': '2/4', '1999': '2/4', '2000': '2/4', '2001': '2/4', '2002': '2/4', '2003': '2/4',
+    '2004': '2/4', '2005': '2/4', '2006': '2/4', '2007': '2/4', '2008': '2/4', '2009': '2/4',
+    '2010': '2/4', '2011': '2/4', '2012': '2/4', '2013': '2/4', '2014': '2/4', '2015': '2/4',
+    '2016': '2/4', '2017': '2/3', '2018': '2/4', '2019': '2/4', '2020': '2/4', '2021': '2/3',
+    '2022': '2/4', '2023': '2/4', '2024': '2/4', '2025': '2/3', '2026': '2/4', '2027': '2/4',
+    '2028': '2/4', '2029': '2/3', '2030': '2/4', '2031': '2/4', '2032': '2/4', '2033': '2/3',
+    '2034': '2/4', '2035': '2/4', '2036': '2/4', '2037': '2/3', '2038': '2/4', '2039': '2/4',
+    '2040': '2/4', '2041': '2/3', '2042': '2/4', '2043': '2/4', '2044': '2/4', '2045': '2/3',
+    '2046': '2/4', '2047': '2/4', '2048': '2/4', '2049': '2/3', '2050': '2/4', 
+    // 注意：1950-1979 年的立春多數是 2/5 (但為簡化，此表從 1980 開始)
+};
+
+// =======================================================
+// 3. 核心計算函數
+// =======================================================
+function calculateNayin() {
+    const year = parseInt(document.getElementById('birthYear').value);
+    const month = parseInt(document.getElementById('birthMonth').value);
+    const day = parseInt(document.getElementById('birthDay').value);
+    const resultDiv = document.getElementById('result');
+
+    // 基礎檢查
+    if (isNaN(year) || isNaN(month) || isNaN(day) || year < 1980 || year > 2050) {
+        resultDiv.innerHTML = "請輸入 1980 至 2050 年間有效的年月日。";
+        return;
+    }
+    
+    const yearStr = year.toString();
+    const lichunDateStr = LICHUN_MAP[yearStr];
+
+    if (!lichunDateStr) {
+        resultDiv.innerHTML = "年份超出立春對照表範圍 (1980-2050)。";
+        return;
+    }
+
+    const [lcMonth, lcDay] = lichunDateStr.split('/').map(Number);
+
+    let actualYear = year;
+    
+    // 判斷是否在立春之前 (立春前算是上一個年命)
+    // 範例：如果立春是 2/4，但您是 2/3 出生，則算去年
+    if (month < lcMonth || (month === lcMonth && day < lcDay)) {
+        actualYear = year - 1;
+    }
+
+    // 查找表起點：1900 年是庚子年 (對應索引 20)
+    const startYear = 1900;
+    const yearDifference = actualYear - startYear;
+    
+    // 計算索引並處理 60 年循環
+    // 1900 年是索引 20 (壁上土)，所以要加上差距
+    let nayinIndex = 20 + yearDifference;
+    nayinIndex = nayinIndex % 60; // 60 年一循環
+
+    // 獲取最終結果
+    const finalNayin = NAYIN_TABLE[nayinIndex];
+
+    // 顯示結果
+    if (finalNayin) {
+        resultDiv.innerHTML = `您的**國曆** ${year} 年 <br>經立春判斷後，年命為：<span style="color:red; font-size:1.5em;">${finalNayin}</span>`;
+    } else {
+        resultDiv.innerHTML = "查找失敗，請檢查輸入。";
+    }
+}
+</script>
+
+</body>
+</html>
