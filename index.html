@@ -1,275 +1,345 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
-    <title>精確對照版：年、月、日三柱納音速查 (1984-2030)</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年月日干支與納音五行對照</title>
     <style>
-        /* 網頁樣式 */
-        body { font-family: 'Microsoft JhengHei', Arial, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; }
-        .container { max-width: 650px; margin: 20px auto; padding: 30px; border: 1px solid #ddd; border-radius: 10px; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h1 { color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 10px; margin-bottom: 20px; }
-        .input-group { margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 5px; }
-        input[type="number"], button { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; }
-        button { background-color: #cc0000; color: white; cursor: pointer; border: none; transition: background-color 0.3s; }
-        button:hover { background-color: #a30000; }
-        .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 25px; }
-        .result-item { border: 2px solid #ddd; padding: 15px 5px; border-radius: 5px; background-color: #fff0f5; }
-        .result-item h3 { margin: 0 0 5px 0; font-size: 1em; color: #666; }
-        .ganzhi-value { font-size: 1.2em; font-weight: bold; color: #0066cc; margin-bottom: 5px; }
-        .nayin-value { font-size: 1.1em; font-weight: bold; color: #cc0000; }
-        .note { font-size: 0.8em; color: #666; margin-top: 20px; text-align: left; }
-        .range-note { color: red; font-weight: bold; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #007bff;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: calc(33% - 10px);
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .result-box {
+            margin-top: 25px;
+            padding: 15px;
+            border: 1px dashed #007bff;
+            border-radius: 8px;
+            background-color: #e9f7ff;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: bold;
+            color: #0056b3;
+        }
+        .value {
+            color: #c82333;
+            font-weight: 600;
+        }
+        /* 針對行動裝置 */
+        @media (max-width: 600px) {
+             input[type="number"] {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>精確對照版：年、月、日三柱納音速查</h1>
-    <p class="range-note">本系統包含 1984/1/1 至 2030/12/31 每日干支對照表</p>
+    <h2>公曆轉干支與納音五行</h2>
     
-    <div class="input-group">
-        <h2>請輸入國曆生日</h2>
-        <input type="number" id="birthYear" placeholder="年份：1984 - 2030" min="1984" max="2030">
-        <input type="number" id="birthMonth" placeholder="月份：1 - 12" min="1" max="12">
-        <input type="number" id="birthDay" placeholder="日期：1 - 31" min="1" max="31">
-    </div>
+    <label for="year">輸入公曆日期 (年/月/日):</label>
+    <input type="number" id="year" placeholder="年 (e.g., 2024)" min="1900" max="2100">
+    <input type="number" id="month" placeholder="月 (1-12)" min="1" max="12">
+    <input type="number" id="day" placeholder="日 (1-31)" min="1" max="31">
     
-    <button onclick="calculateNayin()">精確查找納音五行</button>
+    <button onclick="calculateGanzhiNayin()">計算</button>
     
-    <div class="result-grid" id="result">
-        <div class="result-item"><h3>年柱</h3><div class="ganzhi-value" id="ganzhi_year">---</div><div class="nayin-value" id="nayin_year">待查找</div></div>
-        <div class="result-item"><h3>月柱</h3><div class="ganzhi-value" id="ganzhi_month">---</div><div class="nayin-value" id="nayin_month">待查找</div></div>
-        <div class="result-item"><h3>日柱</h3><div class="ganzhi-value" id="ganzhi_day">---</div><div class="nayin-value" id="nayin_day">待查找</div></div>
-    </div>
+    <div id="output" class="result-box" style="display:none;">
+        <h3>查詢結果</h3>
+        </div>
     
-    <p class="note">
-        * 本程式碼的日柱干支是直接透過內建的 17,000 多筆數據查找，精確度最高。<br>
-        * 年柱和月柱則透過立春/節氣表計算，確保準確性。
+    <p style="font-size: 12px; margin-top: 20px; color: #666;">
+        <strong>註：</strong>年干支採用農曆年循環，月干支採用近似的節氣月份對應。日干支採用天文學儒略日演算法，準確性高。月干支的精確計算需複雜的二十四節氣時刻數據，此處為簡化版。
     </p>
 </div>
 
 <script>
-// =======================================================
-// 數據結構定義
-// =======================================================
-const TIAN_GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-const DI_ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+// --- 核心資料庫 ---
+const HEAVENLY_STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+const EARTHLY_BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 
-// 1. 納音五行查找表 (60 甲子，索引 0 = 甲子)
-const NAYIN_60_MAP = [
-    '海中金', '海中金', '爐中火', '爐中火', '大林木', '大林木', '路旁土', '路旁土', '劍鋒金', '劍鋒金',
-    '山頭火', '山頭火', '澗下水', '澗下水', '城頭土', '城頭土', '白蠟金', '白蠟金', '楊柳木', '楊柳木',
-    '井泉水', '井泉水', '屋上土', '屋上土', '霹靂火', '霹靂火', '松柏木', '松柏木', '長流水', '長流水',
-    '沙中金', '沙中金', '山下火', '山下火', '平地木', '平地木', '壁上土', '壁上土', '金箔金', '金箔金',
-    '覆燈火', '覆燈火', '天河水', '天河水', '大驛土', '大驛土', '釵釧金', '釵釧金', '桑柘木', '桑柘木',
-    '大溪水', '大溪水', '沙中土', '沙中土', '天上火', '天上火', '石榴木', '石榴木', '大海水', '大海水'
+// 納音五行對照表 (Key: 干支索引 (0-59), Value: 納音五行名稱)
+const NAYIN_WUXING = [
+    "海中金", "海中金", "爐中火", "爐中火", "林木", "林木", "路旁土", "路旁土", "劍鋒金", "劍鋒金",
+    "山頭火", "山頭火", "澗下水", "澗下水", "城頭土", "城頭土", "白蠟金", "白蠟金", "楊柳木", "楊柳木",
+    "泉中水", "泉中水", "屋上土", "屋上土", "霹靂火", "霹靂火", "松柏木", "松柏木", "長流水", "長流水",
+    "沙中金", "沙中金", "山下火", "山下火", "平地木", "平地木", "壁上土", "壁上土", "金箔金", "金箔金",
+    "覆燈火", "覆燈火", "天河水", "天河水", "大驛土", "大驛土", "釵釧金", "釵釧金", "桑柘木", "桑柘木",
+    "大溪水", "大溪水", "沙中土", "沙中土", "天上火", "天上火", "石榴木", "石榴木", "大海水", "大海水"
 ];
 
-// 2. 年柱立春對照表 (用於判斷農曆年命)
-const LICHUN_MAP = {
-    '1984': '2/4', '1985': '2/4', '1986': '2/4', '1987': '2/4', '1988': '2/4', '1989': '2/4',
-    '1990': '2/4', '1991': '2/4', '1992': '2/4', '1993': '2/4', '1994': '2/4', '1995': '2/4',
-    '1996': '2/4', '1997': '2/4', '1998': '2/4', '1999': '2/4', '2000': '2/4', '2001': '2/4', 
-    '2002': '2/4', '2003': '2/4', '2004': '2/4', '2005': '2/4', '2006': '2/4', '2007': '2/4', 
-    '2008': '2/4', '2009': '2/4', '2010': '2/4', '2011': '2/4', '2012': '2/4', '2013': '2/4', 
-    '2014': '2/4', '2015': '2/4', '2016': '2/4', '2017': '2/3', '2018': '2/4', '2019': '2/4', 
-    '2020': '2/4', '2021': '2/3', '2022': '2/4', '2023': '2/4', '2024': '2/4', '2025': '2/3', 
-    '2026': '2/4', '2027': '2/4', '2028': '2/4', '2029': '2/3', '2030': '2/4',
-};
+// 農曆月份對應的起始地支 (從寅月開始)
+// 寅=1月，卯=2月, ..., 丑=12月 (註：此為近似，月干支應以節氣定，此處僅用於簡化計算)
+const MONTH_BRANCH_START_INDEX = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1]; 
+// 0: 無效, 1: 寅(2), 2: 卯(3), ..., 12: 丑(1)
 
-// 3. 月柱干支查找表 (五虎遁) - 根據年干定寅月干支
-const WU_HU_DUN_START = [0, 2, 4, 6, 8, 0, 2, 4, 6, 8]; // 甲, 丙, 戊, 庚, 壬
+// --- 核心計算函數 ---
 
-// 4. 節氣轉換表 (用於月柱判斷，已包含所有節氣近似值)
-const JIE_QI_MONTH_MAP = [
-    { month: 1, day: 6, branch: '丑', index: 1 }, // 小寒，對應丑月
-    { month: 2, day: 4, branch: '寅', index: 2 }, // 立春，對應寅月
-    { month: 3, day: 6, branch: '卯', index: 3 }, // 驚蟄，對應卯月
-    { month: 4, day: 5, branch: '辰', index: 4 }, // 清明，對應辰月
-    { month: 5, day: 6, branch: '巳', index: 5 }, // 立夏，對應巳月
-    { month: 6, day: 6, branch: '午', index: 6 }, // 芒種，對應午月
-    { month: 7, day: 7, branch: '未', index: 7 }, // 小暑，對應未月
-    { month: 8, day: 8, branch: '申', index: 8 }, // 立秋，對應申月
-    { month: 9, day: 8, branch: '酉', index: 9 }, // 白露，對應酉月
-    { month: 10, day: 8, branch: '戌', index: 10 }, // 寒露，對應戌月
-    { month: 11, day: 8, branch: '亥', index: 11 }, // 立冬，對應亥月
-    { month: 12, day: 7, branch: '子', index: 0 }  // 大雪，對應子月
-];
+/**
+ * 根據干支的索引 (0-59) 取得納音五行名稱。
+ * @param {number} index - 干支索引 (0-59).
+ * @returns {string} - 納音五行名稱.
+ */
+function getNayin(index) {
+    if (index >= 0 && index < 60) {
+        return NAYIN_WUXING[index];
+    }
+    return "計算錯誤";
+}
 
-// =======================================================
-// 5. 日干支龐大數據對照表 (1984/1/1 至 2030/12/31)
-// 這是應您的要求，將所有日干支數據列入程式碼，取代公式計算。
-// =======================================================
-const DAY_GANZHI_MAP = {
-    "1984-1-1":"甲戌", "1984-1-2":"乙亥", "1984-1-3":"丙子", "1984-1-4":"丁丑", "1984-1-5":"戊寅", "1984-1-6":"己卯", "1984-1-7":"庚辰", "1984-1-8":"辛巳", "1984-1-9":"壬午", "1984-1-10":"癸未", "1984-1-11":"甲申", "1984-1-12":"乙酉", "1984-1-13":"丙戌", "1984-1-14":"丁亥", "1984-1-15":"戊子", "1984-1-16":"己丑", "1984-1-17":"庚寅", "1984-1-18":"辛卯", "1984-1-19":"壬辰", "1984-1-20":"癸巳", "1984-1-21":"甲午", "1984-1-22":"乙未", "1984-1-23":"丙申", "1984-1-24":"丁酉", "1984-1-25":"戊戌", "1984-1-26":"己亥", "1984-1-27":"庚子", "1984-1-28":"辛丑", "1984-1-29":"壬寅", "1984-1-30":"癸卯", "1984-1-31":"甲辰", 
-    "1984-2-1":"乙巳", "1984-2-2":"丙午", "1984-2-3":"丁未", "1984-2-4":"戊申", "1984-2-5":"己酉", "1984-2-6":"庚戌", "1984-2-7":"辛亥", "1984-2-8":"壬子", "1984-2-9":"癸丑", "1984-2-10":"甲寅", "1984-2-11":"乙卯", "1984-2-12":"丙辰", "1984-2-13":"丁巳", "1984-2-14":"戊午", "1984-2-15":"己未", "1984-2-16":"庚申", "1984-2-17":"辛酉", "1984-2-18":"壬戌", "1984-2-19":"癸亥", "1984-2-20":"甲子", "1984-2-21":"乙丑", "1984-2-22":"丙寅", "1984-2-23":"丁卯", "1984-2-24":"戊辰", "1984-2-25":"己巳", "1984-2-26":"庚午", "1984-2-27":"辛未", "1984-2-28":"壬申", "1984-2-29":"癸酉", 
-    "1984-3-1":"甲戌", "1984-3-2":"乙亥", "1984-3-3":"丙子", "1984-3-4":"丁丑", "1984-3-5":"戊寅", "1984-3-6":"己卯", "1984-3-7":"庚辰", "1984-3-8":"辛巳", "1984-3-9":"壬午", "1984-3-10":"癸未", "1984-3-11":"甲申", "1984-3-12":"乙酉", "1984-3-13":"丙戌", "1984-3-14":"丁亥", "1984-3-15":"戊子", "1984-3-16":"己丑", "1984-3-17":"庚寅", "1984-3-18":"辛卯", "1984-3-19":"壬辰", "1984-3-20":"癸巳", "1984-3-21":"甲午", "1984-3-22":"乙未", "1984-3-23":"丙申", "1984-3-24":"丁酉", "1984-3-25":"戊戌", "1984-3-26":"己亥", "1984-3-27":"庚子", "1984-3-28":"辛丑", "1984-3-29":"壬寅", "1984-3-30":"癸卯", "1984-3-31":"甲辰", 
-    //... (此處為節省篇幅，大量資料被省略)
-    "2030-12-1":"甲辰", "2030-12-2":"乙巳", "2030-12-3":"丙午", "2030-12-4":"丁未", "2030-12-5":"戊申", "2030-12-6":"己酉", "2030-12-7":"庚戌", "2030-12-8":"辛亥", "2030-12-9":"壬子", "2030-12-10":"癸丑", "2030-12-11":"甲寅", "2030-12-12":"乙卯", "2030-12-13":"丙辰", "2030-12-14":"丁巳", "2030-12-15":"戊午", "2030-12-16":"己未", "2030-12-17":"庚申", "2030-12-18":"辛酉", "2030-12-19":"壬戌", "2030-12-20":"癸亥", "2030-12-21":"甲子", "2030-12-22":"乙丑", "2030-12-23":"丙寅", "2030-12-24":"丁卯", "2030-12-25":"戊辰", "2030-12-26":"己巳", "2030-12-27":"庚午", "2030-12-28":"辛未", "2030-12-29":"壬申", "2030-12-30":"癸酉", "2030-12-31":"甲戌"
-};
-// 註：為符合用戶要求，完整的 DAY_GANZHI_MAP 數據將在實際代碼中完整提供，此處僅為展示。
-// 實際程式碼中的數據量約 17,166 筆。
-
-
-// =======================================================
-// 輔助功能函數
-// =======================================================
-
-// 1. 根據干支字符串 (例如 "甲子") 查找 60 甲子索引
-function getGanZhiIndex(ganZhi) {
-    if (!ganZhi || ganZhi.length !== 2) return -1;
-    const gan = ganZhi.charAt(0);
-    const zhi = ganZhi.charAt(1);
+/**
+ * 將公曆日期轉換為儒略日數 (Julian Day Number, JDN)。
+ * 這是計算日干支的基礎。
+ * @param {number} Y - 年.
+ * @param {number} M - 月.
+ * @param {number} D - 日.
+ * @returns {number} - 儒略日數.
+ */
+function gregorianToJDN(Y, M, D) {
+    let a = Math.floor((14 - M) / 12);
+    let y = Y + 4800 - a;
+    let m = M + 12 * a - 3;
     
-    const ganIndex = TIAN_GAN.indexOf(gan); // 0-9
-    const zhiIndex = DI_ZHI.indexOf(zhi);   // 0-11
+    // JDN 公式 (適用於格里曆，即 1582年10月15日及以後)
+    let jdn = D + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
     
-    if (ganIndex === -1 || zhiIndex === -1) return -1;
+    return jdn;
+}
 
-    // 透過迴圈尋找 60 甲子索引
+/**
+ * 根據儒略日數計算日干支的索引 (0-59)。
+ * 基準點: 公曆 1899年12月6日 (甲子日) JDN = 2414985
+ * @param {number} jdn - 儒略日數.
+ * @returns {number} - 日干支索引 (0-59).
+ */
+function getDailyGanzhiIndex(jdn) {
+    const JDN_START_GANZHI_INDEX = 0; // 甲子 (索引 0)
+    const JDN_START = 2414985; // 1899/12/06 是 甲子日
+    
+    let offset = jdn - JDN_START;
+    let index = (offset % 60 + 60) % 60; // 確保結果為正
+    
+    return index;
+}
+
+/**
+ * 根據索引計算完整的干支字串。
+ * @param {number} index - 干支索引 (0-59).
+ * @returns {string} - 干支字串 (例如 "甲子").
+ */
+function getGanzhiString(index) {
+    let ganIndex = index % 10;
+    let zhiIndex = index % 12;
+    return HEAVENLY_STEMS[ganIndex] + EARTHLY_BRANCHES[zhiIndex];
+}
+
+/**
+ * 根據年份計算年干支的索引 (0-59)。
+ * 基準點: 公曆 1924年 (甲子年) - 索引 0
+ * @param {number} year - 年份.
+ * @returns {number} - 年干支索引 (0-59).
+ */
+function getYearGanzhiIndex(year) {
+    // 1924年是甲子年 (索引 0)
+    // Formula: (Year - 4) mod 60, where 4 is the remainder of 1924/60.
+    // 1924 mod 60 = 4. 1924 - 4 = 1920 (整除) -> 甲子年
+    // 實際上計算是 (Y - 4) mod 60
+    let index = (year - 4) % 60;
+    if (index < 0) index += 60;
+    return index;
+}
+
+/**
+ * 根據年份和月份計算月干支的索引 (0-59)。
+ * 註：此為**簡化近似**計算，未考慮精確的節氣時刻。
+ * @param {number} year - 年份.
+ * @param {number} month - 月份 (1-12).
+ * @returns {number} - 月干支索引 (0-59).
+ */
+function getMonthGanzhiIndex(year, month) {
+    // 1. 確定月地支 (從寅月開始: 1月=寅, 2月=卯, ..., 12月=丑)
+    // 為了對應農曆月 (寅月始)，這裡使用簡化對應：
+    // 月地支索引 (0=子, 1=丑, ..., 11=亥)
+    let zhiIndex = MONTH_BRANCH_START_INDEX[month];
+
+    // 2. 確定月天干
+    // 月天干是根據年天干和月地支確定的。
+    // 年天干索引: 0=甲, 1=乙, ..., 9=癸
+    let yearGanIndex = getYearGanzhiIndex(year) % 10;
+    
+    // 口訣: 五虎遁月歌 (甲己之年丙作首)
+    // 年干索引 (0-9) 決定正月(寅月)的天干索引 (0-9)
+    const monthGanStartOffset = [2, 4, 6, 8, 0, 2, 4, 6, 8, 0]; // 寅月的天干索引
+    
+    let startGanIndex = monthGanStartOffset[yearGanIndex];
+    
+    // 計算當前月的天干索引 (月支從寅(2)開始，所以需要調整)
+    // 寅月(3) 卯月(4) 辰月(5) 巳月(6) 午月(7) 未月(8) 申月(9) 酉月(10) 戌月(11) 亥月(0) 子月(1) 丑月(2)
+    // 1月是寅月，地支索引是 2
+    let zhiOffset;
+    if (month >= 3) {
+        zhiOffset = month - 3; // 3月是辰月 (地支索引 4), 辰(4) - 寅(2) = 2
+    } else {
+        // 1月寅, 2月卯
+        zhiOffset = month + 9;
+    }
+    
+    // 計算天干
+    let ganIndex = (startGanIndex + zhiOffset) % 10;
+    
+    // 組合干支索引: 天干 * 12 + 地支, 但需要找到它們在 60 甲子中的位置
+    // 簡化方法：計算出干支字串後，從 HEAVENLY_STEMS 和 EARTHLY_BRANCHES 組合查找
+    // 月干支索引 = (月天干索引 * 12 + 月地支索引) 
+    // 更簡單：計算月天干和月地支，然後找到它們在 60 甲子中的共同索引。
+    
+    // 由於地支索引是從子(0)開始，而寅月地支索引是 2，故月地支與月數的關係為：
+    // 月份: 1(寅), 2(卯), 3(辰), ..., 12(丑)
+    // 地支索引: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1 (模 12)
+    let monthBranchIndex = (month + 1) % 12; // 1月: 2 (寅), 2月: 3 (卯), ..., 12月: 1 (丑)
+
+    // 月干索引的正確公式: (年干索引 * 2 + 該月地支索引 + 2) mod 10
+    // 該月地支索引: 2(寅), 3(卯)...
+    let monthGanIndex = (yearGanIndex * 2 + monthBranchIndex + 2) % 10;
+    
+    // 組合索引 (標準公式: 6 * T + Z, T=天干, Z=地支，但這是個錯誤的公式)
+    // 正確組合: (干索引 * 12 + 支索引 * 10) mod 60 (但這也需要解線性同餘)
+    
+    // 最簡單方式：找到 (月天干, 月地支) 在 60 循環中的唯一索引
     for (let i = 0; i < 60; i++) {
-        if (i % 10 === ganIndex && i % 12 === zhiIndex) {
+        if (i % 10 === monthGanIndex && i % 12 === monthBranchIndex) {
             return i;
         }
     }
-    return -1;
-}
-
-// 2. 根據 60 甲子索引查找納音
-function getNayinFromIndex(index) {
-    if (index < 0 || index >= 60) return "---";
-    return NAYIN_60_MAP[index];
+    return -1; // 理論上不會發生
 }
 
 
-// =======================================================
-// 核心計算函數
-// =======================================================
-function calculateNayin() {
-    // 1. 獲取輸入
-    const year = parseInt(document.getElementById('birthYear').value);
-    const month = parseInt(document.getElementById('birthMonth').value);
-    const day = parseInt(document.getElementById('birthDay').value);
-    
-    // 重設結果
-    document.getElementById('ganzhi_year').textContent = "---";
-    document.getElementById('nayin_year').textContent = "---";
-    document.getElementById('ganzhi_month').textContent = "---";
-    document.getElementById('nayin_month').textContent = "---";
-    document.getElementById('ganzhi_day').textContent = "---";
-    document.getElementById('nayin_day').textContent = "---";
+// --- 主控邏輯 ---
 
-    // 範圍檢查 (嚴格遵循 1984 - 2030)
-    if (isNaN(year) || isNaN(month) || isNaN(day) || year < 1984 || year > 2030) {
-        document.getElementById('ganzhi_year').textContent = "日期錯誤";
-        document.getElementById('nayin_year').textContent = "請輸入 1984-2030 年的年月日";
+function calculateGanzhiNayin() {
+    const Y = parseInt(document.getElementById('year').value);
+    const M = parseInt(document.getElementById('month').value);
+    const D = parseInt(document.getElementById('day').value);
+    const outputDiv = document.getElementById('output');
+    outputDiv.style.display = 'none';
+    outputDiv.innerHTML = '';
+
+    // 驗證輸入
+    if (isNaN(Y) || isNaN(M) || isNaN(D) || Y < 1900 || M < 1 || M > 12 || D < 1 || D > 31) {
+        alert("請輸入有效的公曆年月日 (年份建議在 1900-2100 之間)。");
         return;
     }
+    
+    // 1. 計算日干支
+    const jdn = gregorianToJDN(Y, M, D);
+    const dayGanzhiIndex = getDailyGanzhiIndex(jdn);
+    const dayGanzhi = getGanzhiString(dayGanzhiIndex);
+    const dayNayin = getNayin(dayGanzhiIndex);
+    
+    // 2. 計算年干支
+    const yearGanzhiIndex = getYearGanzhiIndex(Y);
+    const yearGanzhi = getGanzhiString(yearGanzhiIndex);
+    const yearNayin = getNayin(yearGanzhiIndex);
 
+    // 3. 計算月干支 (近似)
+    const monthGanzhiIndex = getMonthGanzhiIndex(Y, M);
+    const monthGanzhi = getGanzhiString(monthGanzhiIndex);
+    const monthNayin = getNayin(monthGanzhiIndex);
 
-    // ----------------------------------------------------------------
-    // 2. 年柱計算 (Year Pillar - 使用立春表)
-    // ----------------------------------------------------------------
-    const startYear = 1900; // 1900 庚子年 (Index 36)
-    const yearStr = year.toString();
-    const lichunDateStr = LICHUN_MAP[yearStr];
-    
-    let actualYear = year;
-    
-    if (lichunDateStr) {
-        const [lcMonth, lcDay] = lichunDateStr.split('/').map(Number);
-        if (month < lcMonth || (month === lcMonth && day < lcDay)) {
-            actualYear = year - 1; // 立春前算去年
-        }
-    }
-    
-    // 計算年干支索引 (0-59)
-    const yearDifference = actualYear - startYear;
-    const yearGanZhiIndex = (36 + yearDifference) % 60; // 36 是 1900 庚子的索引
-    
-    // 顯示年柱干支與納音
-    const yearGan = TIAN_GAN[yearGanZhiIndex % 10];
-    const yearZhi = DI_ZHI[yearGanZhiIndex % 12];
-    document.getElementById('ganzhi_year').textContent = `${yearGan}${yearZhi}`;
-    document.getElementById('nayin_year').textContent = getNayinFromIndex(yearGanZhiIndex);
-
-
-    // ----------------------------------------------------------------
-    // 3. 月柱計算 (Month Pillar - 使用節氣表和五虎遁)
-    // ----------------------------------------------------------------
-    
-    let currentZhiIndex = -1;
-    let currentMonthBranch = '---';
-    let monthFound = false;
-    
-    // 查找該日期應該對應的地支月 (使用節氣近似值)
-    for (let i = 0; i < JIE_QI_MONTH_MAP.length; i++) {
-        const jq = JIE_QI_MONTH_MAP[i];
+    // 顯示結果
+    let html = `
+        <div class="result-item">
+            <span class="label">日期：</span>
+            <span class="value">${Y}年${M}月${D}日</span>
+        </div>
         
-        if (month < jq.month || (month === jq.month && day < jq.day)) {
-            // 如果日期在該節氣之前，則為上一個地支月
-            const prevIndex = (i - 1 + 12) % 12;
-            currentMonthBranch = JIE_QI_MONTH_MAP[prevIndex].branch;
-            currentZhiIndex = DI_ZHI.indexOf(currentMonthBranch);
-            monthFound = true;
-            break;
-        }
-    }
-    
-    // 處理 12月大雪之後的情況
-    if (!monthFound) {
-        if (month === 12 && day >= JIE_QI_MONTH_MAP[11].day) {
-            currentMonthBranch = JIE_QI_MONTH_MAP[11].branch; // 子月
-            currentZhiIndex = DI_ZHI.indexOf(currentMonthBranch);
-        } else {
-            // 處理 12月轉 1月 立春前的特殊情況，通常落在前一個月支亥月或子月
-             if (month === 1 && day < JIE_QI_MONTH_MAP[0].day) { // 1/6 小寒之前
-                currentMonthBranch = JIE_QI_MONTH_MAP[11].branch; // 子月
-                currentZhiIndex = DI_ZHI.indexOf(currentMonthBranch);
-            } else {
-                // 如果是 11月8日之後到年底，則為亥月
-                currentMonthBranch = JIE_QI_MONTH_MAP[10].branch; 
-                currentZhiIndex = DI_ZHI.indexOf(currentMonthBranch);
-            }
-        }
-    }
-    
-    // 根據 年干 和 月支 判斷月干 (五虎遁)
-    const yearGanIndexForMonth = yearGanZhiIndex % 10; // 取年干
-    const yueGanStart = WU_HU_DUN_START[yearGanIndexForMonth];
-    
-    // 計算當前月支 (currentMonthBranch) 與 寅月 (寅 = 地支索引 2) 的距離
-    const yinZhiIndex = DI_ZHI.indexOf('寅');
-    const distanceToYin = (currentZhiIndex - yinZhiIndex + 12) % 12;
-    
-    // 換算月干索引
-    const monthGanIndex = (yueGanStart + distanceToYin) % 10;
-    
-    // 組合月柱干支並查找納音
-    const monthGan = TIAN_GAN[monthGanIndex];
-    const monthZhi = currentMonthBranch;
-    const monthGanZhiIndex = getGanZhiIndex(`${monthGan}${monthZhi}`); 
-    
-    document.getElementById('ganzhi_month').textContent = `${monthGan}${monthZhi}`;
-    document.getElementById('nayin_month').textContent = getNayinFromIndex(monthGanZhiIndex);
-
-
-    // ----------------------------------------------------------------
-    // 4. 日柱查找 (Day Pillar - 使用龐大對照表)
-    // ----------------------------------------------------------------
-    const dateKey = `${year}-${month}-${day}`;
-    const dayGanZhi = DAY_GANZHI_MAP[dateKey];
-    
-    if (dayGanZhi) {
-        const dayGanZhiIndex = getGanZhiIndex(dayGanZhi);
+        <div class="result-item">
+            <span class="label">年干支 (年柱)：</span>
+            <span class="value">${yearGanzhi}</span>
+        </div>
+        <div class="result-item">
+            <span class="label">年納音五行：</span>
+            <span class="value">${yearNayin}</span>
+        </div>
         
-        document.getElementById('ganzhi_day').textContent = dayGanZhi;
-        document.getElementById('nayin_day').textContent = getNayinFromIndex(dayGanZhiIndex);
-    } else {
-        document.getElementById('ganzhi_day').textContent = "數據超出範圍";
-        document.getElementById('nayin_day').textContent = "---";
-    }
+        <div class="result-item">
+            <span class="label">月干支 (月柱, 近似)：</span>
+            <span class="value">${monthGanzhi}</span>
+        </div>
+        <div class="result-item">
+            <span class="label">月納音五行：</span>
+            <span class="value">${monthNayin}</span>
+        </div>
+
+        <div class="result-item">
+            <span class="label">日干支 (日柱)：</span>
+            <span class="value">${dayGanzhi}</span>
+        </div>
+        <div class="result-item">
+            <span class="label">日納音五行：</span>
+            <span class="value">${dayNayin}</span>
+        </div>
+    `;
+
+    outputDiv.innerHTML = html;
+    outputDiv.style.display = 'block';
 }
 </script>
 
