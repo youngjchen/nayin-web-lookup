@@ -1,295 +1,211 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>年月日干支與納音五行對照 (甲子代號 1-60)</title>
+    <title>八字納音五行查詢</title>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.12/lunar.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
-        .container { max-width: 700px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
-        h2 { text-align: center; color: #007bff; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-        input[type="number"] { width: calc(33% - 10px); padding: 10px; margin-right: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; font-size: 16px; transition: background-color 0.3s; }
-        button:hover { background-color: #218838; }
-        .result-box { margin-top: 25px; padding: 15px; border: 1px dashed #007bff; border-radius: 8px; background-color: #e9f7ff; }
-        .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; padding: 5px 0; border-bottom: 1px dotted #ccc; }
-        .result-item:last-child { border-bottom: none; }
-        .label { font-weight: bold; color: #0056b3; width: 40%; }
-        .value { color: #c82333; font-weight: 600; text-align: right; width: 60%; }
-        .note { font-size: 12px; margin-top: 20px; color: #666; padding: 10px; border-top: 1px solid #eee; }
-        @media (max-width: 600px) { input[type="number"] { width: 100%; margin-right: 0; margin-bottom: 10px; } }
+        :root {
+            --primary: #000000;
+            --bg: #f5f5f7;
+            --card: #ffffff;
+            --accent: #ff3b30;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 600;
+        }
+        input[type="date"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            background: #fafafa;
+            outline: none;
+            transition: 0.3s;
+        }
+        input[type="date"]:focus {
+            border-color: var(--primary);
+            background: #fff;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        #result {
+            margin-top: 30px;
+            display: none; /* 預設隱藏 */
+            text-align: left;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .result-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .result-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .result-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .nayin-highlight {
+            color: var(--accent);
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: #aaa;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>國曆轉干支與納音五行查詢</h2>
+    <h1>🔮 八字納音五行查詢</h1>
     
-    <label for="year">輸入國曆日期 (年/月/日 - 需不超過今天):</label>
-    <input type="number" id="year" placeholder="年 (e.g., 1989)" min="1900" max="2025">
-    <input type="number" id="month" placeholder="月 (1-12)" min="1" max="12">
-    <input type="number" id="day" placeholder="日 (1-31)" min="1" max="31">
-    
-    <button onclick="calculateGanzhiNayin()">計算干支與五行</button>
-    
-    <div id="output" class="result-box" style="display:none;">
-        <h3>查詢結果</h3>
+    <div class="input-group">
+        <label for="birthdate">請選擇國曆出生日期</label>
+        <input type="date" id="birthdate">
+    </div>
+
+    <button onclick="calculate()">開始分析</button>
+
+    <div id="result">
+        <div class="result-item">
+            <div class="result-label">農曆日期</div>
+            <div class="result-value" id="lunarText"></div>
         </div>
+        
+        <div class="result-item">
+            <div class="result-label">年柱 (生肖) & 納音</div>
+            <div class="result-value">
+                <span id="yearGanZhi"></span> 
+                <span class="nayin-highlight" id="yearNaYin"></span>
+            </div>
+        </div>
+
+        <div class="result-item">
+            <div class="result-label">月柱 & 納音</div>
+            <div class="result-value">
+                <span id="monthGanZhi"></span>
+                <span class="nayin-highlight" id="monthNaYin"></span>
+            </div>
+        </div>
+
+        <div class="result-item">
+            <div class="result-label">日柱 & 納音</div>
+            <div class="result-value">
+                <span id="dayGanZhi"></span>
+                <span class="nayin-highlight" id="dayNaYin"></span>
+            </div>
+        </div>
+    </div>
     
-    <p class="note">
-        <strong>計算說明：</strong>
-        1. **日干支：** 採用修正後的儒略日演算法，精確度高。
-        2. **年/月干支：** 採用五虎遁月歌結合節氣月（節氣時刻採用近似日期），可能與精確曆法結果有極微小差異。
-        3. **輸入範圍：** 1900年1月1日 至 ${new Date().getFullYear()}年${new Date().getMonth() + 1}月${new Date().getDate()}日。
-    </p>
+    <div class="footer">Powered by Lunar.js | High Accuracy</div>
 </div>
 
 <script>
-// --- 核心資料庫 ---
-const HEAVENLY_STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
-const EARTHLY_BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
-
-// 納音五行對照表 (索引 0-59, 對應 甲子-癸亥)
-const NAYIN_WUXING = [
-    "海中金", "海中金", "爐中火", "爐中火", "大林木", "大林木", "路旁土", "路旁土", "劍鋒金", "劍鋒金",
-    "山頭火", "山頭火", "澗下水", "澗下水", "城頭土", "城頭土", "白蠟金", "白蠟金", "楊柳木", "楊柳木",
-    "泉中水", "泉中水", "屋上土", "屋上土", "霹靂火", "霹靂火", "松柏木", "松柏木", "長流水", "長流水",
-    "沙中金", "沙中金", "山下火", "山下火", "平地木", "平地木", "壁上土", "壁上土", "金箔金", "金箔金",
-    "覆燈火", "覆燈火", "天河水", "天河水", "大驛土", "大驛土", "釵釧金", "釵釧金", "桑柘木", "桑柘木",
-    "大溪水", "大溪水", "沙中土", "沙中土", "天上火", "天上火", "石榴木", "石榴木", "大海水", "大海水"
-];
-
-// 節氣月地支和近似起始日 (用於月干支計算)
-// 註：這部分為近似計算，精確的月干支需仰賴天文學時刻。
-const SOLAR_MONTHS = [
-    { startMonth: 1, startDay: 6, zhiIndex: 1 }, // 丑月 (小寒)
-    { startMonth: 2, startDay: 4, zhiIndex: 2 }, // 寅月 (立春)
-    { startMonth: 3, startDay: 6, zhiIndex: 3 }, // 卯月 (驚蟄)
-    { startMonth: 4, startDay: 5, zhiIndex: 4 }, // 辰月 (清明)
-    { startMonth: 5, startDay: 6, zhiIndex: 5 }, // 巳月 (立夏)
-    { startMonth: 6, startDay: 6, zhiIndex: 6 }, // 午月 (芒種)
-    { startMonth: 7, startDay: 7, zhiIndex: 7 }, // 未月 (小暑)
-    { startMonth: 8, startDay: 8, zhiIndex: 8 }, // 申月 (立秋)
-    { startMonth: 9, startDay: 8, zhiIndex: 9 }, // 酉月 (白露)
-    { startMonth: 10, startDay: 8, zhiIndex: 10 }, // 戌月 (寒露)
-    { startMonth: 11, startDay: 8, zhiIndex: 11 }, // 亥月 (立冬)
-    { startMonth: 12, startDay: 7, zhiIndex: 0 } // 子月 (大雪)
-];
-
-
-// --- 核心計算函數 ---
-
-/**
- * 取得干支字串和甲子代號 (1-60)。
- * @param {number} index - 干支索引 (0-59).
- * @returns {{ganzhi: string, nayin: string, code: number}}
- */
-function getGanzhiDetails(index) {
-    if (index < 0 || index >= 60) return { ganzhi: "無效", nayin: "無效", code: -1 };
-    
-    let ganIndex = index % 10;
-    let zhiIndex = index % 12;
-    
-    return {
-        ganzhi: HEAVENLY_STEMS[ganIndex] + EARTHLY_BRANCHES[zhiIndex],
-        nayin: NAYIN_WUXING[index],
-        code: index + 1 // 甲子代號 1-60
-    };
-}
-
-/**
- * 將公曆日期轉換為儒略日數 (Julian Day Number, JDN)。
- * @param {number} Y - 年.
- * @param {number} M - 月.
- * @param {number} D - 日.
- * @returns {number} - 儒略日數.
- */
-function gregorianToJDN(Y, M, D) {
-    let a = Math.floor((14 - M) / 12);
-    let y = Y + 4800 - a;
-    let m = M + 12 * a - 3;
-    // JDN 公式 (適用於格里曆，即 1582年10月15日及以後)
-    return D + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
-}
-
-/**
- * 根據儒略日數計算日干支的索引 (0-59)。
- * **修正:** 調整基準點偏移量以修正 JDN 公式與曆法標準之間的誤差。
- * 原始基準點: 1899年12月6日 (甲子日) JDN = 2414985
- * @param {number} jdn - 儒略日數.
- * @returns {number} - 日干支索引 (0-59).
- */
-function getDailyGanzhiIndex(jdn) {
-    const JDN_START = 2414985; // 原始甲子日 JDN
-    const ERROR_OFFSET = 22;   // 修正誤差：實際干支比計算結果慢 22 步
-    
-    let offset = jdn - JDN_START;
-    
-    // 修正後的索引計算
-    let index = ((offset - ERROR_OFFSET) % 60 + 60) % 60; 
-    
-    return index;
-}
-
-/**
- * 根據年份計算年干支的索引 (0-59)。
- * 基準點: 1924年是甲子年 (索引 0)
- * @param {number} year - 年份.
- * @returns {number} - 年干支索引 (0-59).
- */
-function getYearGanzhiIndex(year) {
-    let index = (year - 4) % 60;
-    if (index < 0) index += 60;
-    return index;
-}
-
-/**
- * 根據年份和月份計算月干支的索引 (0-59)。
- * 採用五虎遁月歌結合近似節氣月。
- * @param {number} Y - 年份.
- * @param {number} M - 月份 (1-12).
- * @param {number} D - 日.
- * @returns {number} - 月干支索引 (0-59).
- */
-function getMonthGanzhiIndex(Y, M, D) {
-    let yearGanIndex = getYearGanzhiIndex(Y) % 10;
-    
-    // 1. 確定當前日期落在哪個節氣月 (地支)
-    let solarZhiIndex = -1;
-    
-    // 找出當前日期所屬的節氣月地支索引
-    // 節氣月地支索引 (0:子, 1:丑, ..., 11:亥)
-    if (M === 1) {
-        solarZhiIndex = (D < 6) ? 1 : 2; // 1/6 小寒前 丑月(1)，後 寅月(2)
-    } else if (M === 2) {
-         solarZhiIndex = (D < 4) ? 1 : 2; // 2/4 立春前 丑月(1)，後 寅月(2)
-    } else if (M === 3) {
-         solarZhiIndex = (D < 6) ? 2 : 3; // 3/6 驚蟄前 寅月(2)，後 卯月(3)
-    } else if (M === 4) {
-         solarZhiIndex = (D < 5) ? 3 : 4; // 4/5 清明前 卯月(3)，後 辰月(4)
-    } else if (M === 5) {
-         solarZhiIndex = (D < 6) ? 4 : 5; // 5/6 立夏前 辰月(4)，後 巳月(5)
-    } else if (M === 6) {
-         solarZhiIndex = (D < 6) ? 5 : 6; // 6/6 芒種前 巳月(5)，後 午月(6)
-    } else if (M === 7) {
-         solarZhiIndex = (D < 7) ? 6 : 7; // 7/7 小暑前 午月(6)，後 未月(7)
-    } else if (M === 8) {
-         solarZhiIndex = (D < 8) ? 7 : 8; // 8/8 立秋前 未月(7)，後 申月(8)
-    } else if (M === 9) {
-         solarZhiIndex = (D < 8) ? 8 : 9; // 9/8 白露前 申月(8)，後 酉月(9)
-    } else if (M === 10) {
-         solarZhiIndex = (D < 8) ? 9 : 10; // 10/8 寒露前 酉月(9)，後 戌月(10)
-    } else if (M === 11) {
-         solarZhiIndex = (D < 8) ? 10 : 11; // 11/8 立冬前 戌月(10)，後 亥月(11)
-    } else if (M === 12) {
-         solarZhiIndex = (D < 7) ? 11 : 0; // 12/7 大雪前 亥月(11)，後 子月(0)
-    }
-    
-    // 2. 確定月天干 (五虎遁月歌: 甲己丙作首, 乙庚戊作首, 丙辛庚作首...)
-    // 寅月 (地支索引 2) 的起始天干索引 (0-9):
-    const startGanOffset = [2, 4, 6, 8, 0, 2, 4, 6, 8, 0]; // (甲, 乙, 丙, 丁, 戊, 己, 庚, 辛, 壬, 癸) 年
-    startGanIndex = startGanOffset[yearGanIndex];
-    
-    // 3. 計算月干
-    // offset = (當前月地支索引 - 寅月地支索引) mod 12
-    let offset = solarZhiIndex - 2;
-    if (offset < 0) offset += 12; 
-    
-    let monthGanIndex = (startGanIndex + offset) % 10;
-
-    // 4. 組合索引
-    for (let i = 0; i < 60; i++) {
-        if (i % 10 === monthGanIndex && i % 12 === solarZhiIndex) {
-            return i;
+    function calculate() {
+        const dateInput = document.getElementById('birthdate').value;
+        if (!dateInput) {
+            alert("請先選擇日期！");
+            return;
         }
-    }
-    return -1; 
-}
 
+        // 取得輸入的年、月、日
+        const dateParts = dateInput.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[2]);
 
-// --- 主控邏輯 ---
+        // 使用 Solar (國曆) 轉換為 Lunar (農曆)
+        const solar = Solar.fromYmd(year, month, day);
+        const lunar = solar.getLunar();
 
-function calculateGanzhiNayin() {
-    const Y = parseInt(document.getElementById('year').value);
-    const M = parseInt(document.getElementById('month').value);
-    const D = parseInt(document.getElementById('day').value);
-    const outputDiv = document.getElementById('output');
-    outputDiv.style.display = 'none';
-    outputDiv.innerHTML = '';
-    
-    const today = new Date();
-    // 確保輸入日期不晚於今天
-    const inputDate = new Date(Y, M - 1, D, 23, 59, 59); // 設置為當天結束
-    
-    // 驗證輸入
-    if (isNaN(Y) || isNaN(M) || isNaN(D) || Y < 1900 || inputDate.getTime() > today.getTime()) {
-        alert(`請輸入有效的國曆年月日，且日期需不超過今天 (${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()})。`);
-        return;
-    }
+        // 1. 農曆日期顯示 (例如：二〇二三年 八月 初四)
+        document.getElementById('lunarText').innerText = lunar.toString();
 
-    // 1. 計算日干支
-    const jdn = gregorianToJDN(Y, M, D);
-    const dayGanzhiIndex = getDailyGanzhiIndex(jdn);
-    const dayDetails = getGanzhiDetails(dayGanzhiIndex);
-    
-    // 2. 計算年干支
-    const yearGanzhiIndex = getYearGanzhiIndex(Y);
-    const yearDetails = getGanzhiDetails(yearGanzhiIndex);
-
-    // 3. 計算月干支 (近似)
-    const monthGanzhiIndex = getMonthGanzhiIndex(Y, M, D);
-    const monthDetails = getGanzhiDetails(monthGanzhiIndex);
-    
-    // 顯示結果
-    let html = `
-        <div class="result-item">
-            <span class="label">日期：</span>
-            <span class="value">${Y}年${M}月${D}日</span>
-        </div>
+        // 2. 八字計算 (注意：八字是以「節氣」來劃分年月，而非單純農曆初一)
+        // getYearInGanZhiExact() 確保是以「立春」換年
+        // getMonthInGanZhiExact() 確保是以「節氣」換月
         
-        <div class="result-item">
-            <span class="label">年干支 (年柱)：</span>
-            <span class="value">${yearDetails.ganzhi}</span>
-        </div>
-        <div class="result-item">
-            <span class="label">甲子代號：</span>
-            <span class="value">${yearDetails.code}</span>
-        </div>
-        <div class="result-item">
-            <span class="label">年納音五行：</span>
-            <span class="value">${yearDetails.nayin}</span>
-        </div>
-        
-        <div class="result-item">
-            <span class="label">月干支 (月柱, 近似)：</span>
-            <span class="value">${monthDetails.ganzhi}</span>
-        </div>
-        <div class="result-item">
-            <span class="label">甲子代號：</span>
-            <span class="value">${monthDetails.code}</span>
-        </div>
-        <div class="result-item">
-            <span class="label">月納音五行：</span>
-            <span class="value">${monthDetails.nayin}</span>
-        </div>
+        const eightChar = lunar.getEightChar();
 
-        <div class="result-item" style="background-color: #d1ecf1; border-radius: 5px; padding: 10px 0;">
-            <span class="label">**日干支 (日柱)：**</span>
-            <span class="value">**${dayDetails.ganzhi}**</span>
-        </div>
-        <div class="result-item">
-            <span class="label">甲子代號：</span>
-            <span class="value">${dayDetails.code}</span>
-        </div>
-        <div class="result-item">
-            <span class="label">日納音五行：</span>
-            <span class="value">${dayDetails.nayin}</span>
-        </div>
-    `;
+        // 年柱
+        const yearGZ = eightChar.getYear();
+        const yearNY = eightChar.getYearNaYin();
+        document.getElementById('yearGanZhi').innerText = yearGZ + " [" + lunar.getYearShengXiao() + "年]";
+        document.getElementById('yearNaYin').innerText = yearNY;
 
-    outputDiv.innerHTML = html;
-    outputDiv.style.display = 'block';
-}
+        // 月柱
+        const monthGZ = eightChar.getMonth();
+        const monthNY = eightChar.getMonthNaYin();
+        document.getElementById('monthGanZhi').innerText = monthGZ;
+        document.getElementById('monthNaYin').innerText = monthNY;
+
+        // 日柱
+        const dayGZ = eightChar.getDay();
+        const dayNY = eightChar.getDayNaYin();
+        document.getElementById('dayGanZhi').innerText = dayGZ;
+        document.getElementById('dayNaYin').innerText = dayNY;
+
+        // 顯示結果區塊
+        document.getElementById('result').style.display = "block";
+    }
 </script>
 
 </body>
