@@ -38,7 +38,7 @@
     
     <p class="note">
         <strong>計算說明：</strong>
-        1. **日干支：** 採用天文學儒略日演算法，精確度高。
+        1. **日干支：** 採用修正後的儒略日演算法，精確度高。
         2. **年/月干支：** 採用五虎遁月歌結合節氣月（節氣時刻採用近似日期），可能與精確曆法結果有極微小差異。
         3. **輸入範圍：** 1900年1月1日 至 ${new Date().getFullYear()}年${new Date().getMonth() + 1}月${new Date().getDate()}日。
     </p>
@@ -60,6 +60,7 @@ const NAYIN_WUXING = [
 ];
 
 // 節氣月地支和近似起始日 (用於月干支計算)
+// 註：這部分為近似計算，精確的月干支需仰賴天文學時刻。
 const SOLAR_MONTHS = [
     { startMonth: 1, startDay: 6, zhiIndex: 1 }, // 丑月 (小寒)
     { startMonth: 2, startDay: 4, zhiIndex: 2 }, // 寅月 (立春)
@@ -113,14 +114,21 @@ function gregorianToJDN(Y, M, D) {
 
 /**
  * 根據儒略日數計算日干支的索引 (0-59)。
- * 基準點: 1899年12月6日 (甲子日) JDN = 2414985
+ * **修正:** 調整基準點偏移量以修正 JDN 公式與曆法標準之間的誤差。
+ * 原始基準點: 1899年12月6日 (甲子日) JDN = 2414985
  * @param {number} jdn - 儒略日數.
  * @returns {number} - 日干支索引 (0-59).
  */
 function getDailyGanzhiIndex(jdn) {
-    const JDN_START = 2414985;
+    const JDN_START = 2414985; // 原始甲子日 JDN
+    const ERROR_OFFSET = 22;   // 修正誤差：實際干支比計算結果慢 22 步
+    
     let offset = jdn - JDN_START;
-    return (offset % 60 + 60) % 60;
+    
+    // 修正後的索引計算
+    let index = ((offset - ERROR_OFFSET) % 60 + 60) % 60; 
+    
+    return index;
 }
 
 /**
@@ -147,125 +155,55 @@ function getMonthGanzhiIndex(Y, M, D) {
     let yearGanIndex = getYearGanzhiIndex(Y) % 10;
     
     // 1. 確定當前日期落在哪個節氣月 (地支)
-    let currentSolarMonthZhiIndex = -1;
-    let startGanIndex = -1;
+    let solarZhiIndex = -1;
     
-    // 找出當前日期所屬的節氣月
-    // 節氣月判斷：如果日期在某個節氣的起始日（近似值）之後，則該月地支發生變化。
-    for (let i = 0; i < SOLAR_MONTHS.length; i++) {
-        const sm = SOLAR_MONTHS[i];
-        
-        let isCurrentMonth = false;
-        if (M === sm.startMonth && D >= sm.startDay) {
-            isCurrentMonth = true;
-        } else if (M === (sm.startMonth % 12) + 1) { // 檢查下一個月
-            // 如果當前日期在下一個月，但早於下一個月的節氣起始日，則仍屬於上一個月
-            const prevIndex = (i === 0) ? 11 : i - 1;
-            const prevSm = SOLAR_MONTHS[prevIndex];
-            if (M === (prevSm.startMonth % 12) + 1 && D < sm.startDay) {
-                 isCurrentMonth = false; // 屬於前一個月的月支，讓迴圈繼續，會在前一個月找到
-            }
-        }
-        
-        // 簡化判斷邏輯：找到當前日期落在哪個節氣區間
-        let nextIndex = (i + 1) % 12;
-        let nextSm = SOLAR_MONTHS[nextIndex];
-        
-        if (M === sm.startMonth) {
-            if (D >= sm.startDay) {
-                currentSolarMonthZhiIndex = sm.zhiIndex;
-                break;
-            }
-        }
-        
-        // 跨月判斷：如果日期在上個月，但過了上個月的節氣日，則屬於本月
-        if (M === sm.startMonth) {
-            if (D >= sm.startDay) {
-                currentSolarMonthZhiIndex = sm.zhiIndex;
-                break;
-            }
-        } else if (M === nextSm.startMonth) {
-             if (D < nextSm.startDay) {
-                currentSolarMonthZhiIndex = sm.zhiIndex;
-                break;
-            }
-        }
+    // 找出當前日期所屬的節氣月地支索引
+    // 節氣月地支索引 (0:子, 1:丑, ..., 11:亥)
+    if (M === 1) {
+        solarZhiIndex = (D < 6) ? 1 : 2; // 1/6 小寒前 丑月(1)，後 寅月(2)
+    } else if (M === 2) {
+         solarZhiIndex = (D < 4) ? 1 : 2; // 2/4 立春前 丑月(1)，後 寅月(2)
+    } else if (M === 3) {
+         solarZhiIndex = (D < 6) ? 2 : 3; // 3/6 驚蟄前 寅月(2)，後 卯月(3)
+    } else if (M === 4) {
+         solarZhiIndex = (D < 5) ? 3 : 4; // 4/5 清明前 卯月(3)，後 辰月(4)
+    } else if (M === 5) {
+         solarZhiIndex = (D < 6) ? 4 : 5; // 5/6 立夏前 辰月(4)，後 巳月(5)
+    } else if (M === 6) {
+         solarZhiIndex = (D < 6) ? 5 : 6; // 6/6 芒種前 巳月(5)，後 午月(6)
+    } else if (M === 7) {
+         solarZhiIndex = (D < 7) ? 6 : 7; // 7/7 小暑前 午月(6)，後 未月(7)
+    } else if (M === 8) {
+         solarZhiIndex = (D < 8) ? 7 : 8; // 8/8 立秋前 未月(7)，後 申月(8)
+    } else if (M === 9) {
+         solarZhiIndex = (D < 8) ? 8 : 9; // 9/8 白露前 申月(8)，後 酉月(9)
+    } else if (M === 10) {
+         solarZhiIndex = (D < 8) ? 9 : 10; // 10/8 寒露前 酉月(9)，後 戌月(10)
+    } else if (M === 11) {
+         solarZhiIndex = (D < 8) ? 10 : 11; // 11/8 立冬前 戌月(10)，後 亥月(11)
+    } else if (M === 12) {
+         solarZhiIndex = (D < 7) ? 11 : 0; // 12/7 大雪前 亥月(11)，後 子月(0)
     }
     
-    // 如果日期在某個節氣日的範圍內，則 ZHI Index已經確定
-    // 2. 確定月天干 (五虎遁月歌: 甲己之年丙作首，乙庚戊寅起，丙辛戊寅起... )
-    // 寅月 (Index 2) 的天干索引 (0-9):
+    // 2. 確定月天干 (五虎遁月歌: 甲己丙作首, 乙庚戊作首, 丙辛庚作首...)
+    // 寅月 (地支索引 2) 的起始天干索引 (0-9):
     const startGanOffset = [2, 4, 6, 8, 0, 2, 4, 6, 8, 0]; // (甲, 乙, 丙, 丁, 戊, 己, 庚, 辛, 壬, 癸) 年
-    
-    // 寅月 (地支索引 2) 的起始天干索引
     startGanIndex = startGanOffset[yearGanIndex];
     
-    // 3. 確定當前地支 (Zhi) 的索引 (0-11)
-    let finalZhiIndex = -1;
-    
-    // 找到當前月份的節氣月地支索引
-    let isSolarMonthDetermined = false;
-    for (let i = 0; i < 12; i++) {
-        let currentMonth = (i + 1); // 1-12
-        let currentDay = 0;
-        
-        // 簡化：使用一個固定日期作為節氣分界點
-        let jieqiDay = [6, 4, 6, 5, 6, 6, 7, 8, 8, 8, 8, 7]; // 各月節氣（立春/驚蟄...）的近似日
-        let zhiMap = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0]; // 1月:寅(2), 2月:卯(3)... -> 實際是 1月:丑(1), 2月:寅(2), 3月:卯(3)...
-        
-        // 修正：農曆月份是以 寅月(Feb) 為開始
-        // 公曆月份:  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-        // 節氣月地支: 丑, 寅, 卯, 辰, 巳, 午, 未, 申, 酉, 戌, 亥, 子
-        // 地支索引:  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0
-        
-        // 找出當前日期所屬的節氣月地支索引
-        let solarZhiIndex = -1;
-        // 1月 (M=1) -> 丑月 (Zhi=1) 或 寅月 (Zhi=2, 立春後)
-        if (M === 1) {
-            solarZhiIndex = (D < 6) ? 1 : 2; // 1/6 小寒前 丑月，後 寅月
-        } else if (M === 2) {
-             solarZhiIndex = (D < 4) ? 1 : 2; // 2/4 立春前 丑月，後 寅月
-        } else if (M === 3) {
-             solarZhiIndex = (D < 6) ? 2 : 3; // 3/6 驚蟄前 寅月，後 卯月
-        } else if (M === 4) {
-             solarZhiIndex = (D < 5) ? 3 : 4; // 4/5 清明前 卯月，後 辰月
-        } else if (M === 5) {
-             solarZhiIndex = (D < 6) ? 4 : 5; // 5/6 立夏前 辰月，後 巳月
-        } else if (M === 6) {
-             solarZhiIndex = (D < 6) ? 5 : 6; // 6/6 芒種前 巳月，後 午月
-        } else if (M === 7) {
-             solarZhiIndex = (D < 7) ? 6 : 7; // 7/7 小暑前 午月，後 未月
-        } else if (M === 8) {
-             solarZhiIndex = (D < 8) ? 7 : 8; // 8/8 立秋前 未月，後 申月
-        } else if (M === 9) {
-             solarZhiIndex = (D < 8) ? 8 : 9; // 9/8 白露前 申月，後 酉月
-        } else if (M === 10) {
-             solarZhiIndex = (D < 8) ? 9 : 10; // 10/8 寒露前 酉月，後 戌月
-        } else if (M === 11) {
-             solarZhiIndex = (D < 8) ? 10 : 11; // 11/8 立冬前 戌月，後 亥月
-        } else if (M === 12) {
-             solarZhiIndex = (D < 7) ? 11 : 0; // 12/7 大雪前 亥月，後 子月
-        }
-        
-        finalZhiIndex = solarZhiIndex; // 這才是正確的地支索引
-        break;
-    }
-    
-    // 4. 計算月干
-    // 月干索引 = (寅月起始天干索引 + (當前月地支索引 - 寅月地支索引)) mod 10
-    // 寅月地支索引為 2
-    let offset = finalZhiIndex - 2;
-    if (offset < 0) offset += 12; // 確保正數，例如 丑月(1) 到 寅月(2) 是 11 步
+    // 3. 計算月干
+    // offset = (當前月地支索引 - 寅月地支索引) mod 12
+    let offset = solarZhiIndex - 2;
+    if (offset < 0) offset += 12; 
     
     let monthGanIndex = (startGanIndex + offset) % 10;
 
-    // 5. 組合索引 (找到 (月天干, 月地支) 在 60 循環中的唯一索引)
+    // 4. 組合索引
     for (let i = 0; i < 60; i++) {
-        if (i % 10 === monthGanIndex && i % 12 === finalZhiIndex) {
+        if (i % 10 === monthGanIndex && i % 12 === solarZhiIndex) {
             return i;
         }
     }
-    return -1; // 不應發生
+    return -1; 
 }
 
 
@@ -280,10 +218,11 @@ function calculateGanzhiNayin() {
     outputDiv.innerHTML = '';
     
     const today = new Date();
-    const inputDate = new Date(Y, M - 1, D);
+    // 確保輸入日期不晚於今天
+    const inputDate = new Date(Y, M - 1, D, 23, 59, 59); // 設置為當天結束
     
     // 驗證輸入
-    if (isNaN(Y) || isNaN(M) || isNaN(D) || Y < 1900 || inputDate > today) {
+    if (isNaN(Y) || isNaN(M) || isNaN(D) || Y < 1900 || inputDate.getTime() > today.getTime()) {
         alert(`請輸入有效的國曆年月日，且日期需不超過今天 (${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()})。`);
         return;
     }
