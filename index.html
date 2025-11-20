@@ -2,413 +2,567 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>納音五行 · 每日運勢指南</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>納音五行·意象論命 (精準邏輯版)</title>
+    <meta name="description" content="輸入生日，透過納音五行三位一體架構，提供具象化的強弱互動運勢分析。">
+    
+    <!-- 引入 Lunar.js -->
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.12/lunar.js"></script>
+    
     <style>
         :root {
-            --primary: #2c3e50;
+            --primary: #2d3436;
+            --accent: #6c5ce7;
             --bg: #f4f7f6;
-            --card: #ffffff;
-            --accent: #3498db;
-            --text-gray: #7f8c8d;
+            --card-bg: #ffffff;
+            --text: #2d3436;
             --border-radius: 16px;
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         body {
-            font-family: -apple-system, "SF Pro Text", "PingFang TC", "Noto Sans TC", sans-serif;
+            font-family: "PingFang TC", "Microsoft JhengHei", -apple-system, sans-serif;
             background-color: var(--bg);
-            color: var(--primary);
-            padding: 20px 12px;
+            color: var(--text);
             margin: 0;
+            padding: 15px 10px;
             line-height: 1.6;
+            font-size: 15px;
         }
-        .container { max-width: 500px; margin: 0 auto; }
+
+        .container { max-width: 650px; margin: 0 auto; }
         
-        .card {
-            background: var(--card);
+        /* 頂部今日氣場 */
+        .today-card {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
             border-radius: var(--border-radius);
-            padding: 24px;
+            padding: 20px;
+            color: white;
             margin-bottom: 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
-            border: 1px solid rgba(0,0,0,0.02);
+            box-shadow: 0 8px 20px rgba(108, 92, 231, 0.2);
+        }
+        .today-title { text-align: center; font-size: 1.1rem; margin-bottom: 15px; font-weight: bold; letter-spacing: 1px; opacity: 0.9; }
+        .today-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .t-box {
+            background: rgba(255,255,255,0.2); border-radius: 10px; padding: 10px 5px;
+            text-align: center; backdrop-filter: blur(5px);
+        }
+        .t-label { font-size: 0.8rem; opacity: 0.8; margin-bottom: 4px; }
+        .t-val { font-size: 1.2rem; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        /* 通用卡片 */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
         }
 
-        h1 { font-size: 1.5rem; text-align: center; margin: 0 0 20px 0; color: #34495e; font-weight: 800; letter-spacing: -0.5px; }
         h2 { 
-            font-size: 1.1rem; 
-            margin: 0 0 15px 0; 
-            color: #2c3e50; 
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-        }
-        h2::before {
-            content: ''; display: inline-block; width: 4px; height: 18px;
-            background: var(--accent); margin-right: 10px; border-radius: 2px;
+            font-size: 1.1rem; margin: 0 0 15px 0; color: var(--primary);
+            border-left: 4px solid var(--accent); padding-left: 10px;
+            display: flex; align-items: center;
         }
 
-        /* 頂部今日資訊 Grid */
-        .today-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; }
-        .pillar-box { background: #f8f9fa; padding: 12px 5px; border-radius: 12px; }
-        .pillar-title { font-size: 0.75rem; color: var(--text-gray); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .pillar-ny { font-size: 0.95rem; color: var(--accent); font-weight: 700; }
-
-        /* 輸入框 */
-        .input-group label { display: block; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-gray); font-weight: 500; }
+        /* 輸入與按鈕 */
+        .input-area { text-align: center; }
         input[type="date"] {
-            width: 100%; padding: 14px; border: 2px solid #eef2f7;
-            border-radius: 12px; font-size: 1rem; background: #fff;
-            box-sizing: border-box; outline: none; transition: 0.2s;
-            color: #2c3e50;
+            width: 100%; padding: 14px; margin-bottom: 12px;
+            border: 2px solid #dfe6e9; border-radius: 12px;
+            font-size: 1.1rem; outline: none; -webkit-appearance: none; text-align: center;
         }
-        input[type="date"]:focus { border-color: var(--accent); }
-        
         button {
-            width: 100%; padding: 16px; background: var(--primary);
-            color: #fff; border: none; border-radius: 12px;
-            font-size: 1.05rem; font-weight: 600; margin-top: 20px; cursor: pointer;
-            box-shadow: 0 4px 12px rgba(44, 62, 80, 0.2); transition: 0.2s;
+            width: 100%; padding: 16px;
+            background: var(--accent); color: white; border: none; border-radius: 12px;
+            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+            transition: transform 0.2s;
         }
         button:active { transform: scale(0.98); }
 
-        /* 運勢列表 */
-        #result { display: none; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .fortune-item { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
-        .fortune-item:last-child { border-bottom: none; margin-bottom: 0; }
-        
-        .fortune-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .fortune-title { font-weight: 700; font-size: 1rem; color: #34495e; }
-        
-        /* 運勢標籤顏色 */
-        .tag { font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; font-weight: 700; }
-        .tag-大吉 { background: #d4edda; color: #155724; }
-        .tag-中吉 { background: #cce5ff; color: #004085; }
-        .tag-吉 { background: #fff3cd; color: #856404; }
-        .tag-平 { background: #e2e3e5; color: #383d41; }
-        .tag-凶 { background: #f8d7da; color: #721c24; }
-
-        .fortune-content { font-size: 0.95rem; color: #555; margin-bottom: 10px; text-align: justify; }
-        
-        /* 核心解釋區塊 */
-        .nayin-explanation { 
-            background: #f8f9fa; padding: 12px; border-radius: 10px; 
-            font-size: 0.9rem; color: #444; line-height: 1.5;
-            border-left: 3px solid var(--accent);
+        /* 命盤樣式 */
+        .pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
+        .p-box {
+            background: #f8f9fa; border-radius: 10px; padding: 12px 5px;
+            text-align: center; border: 1px solid #eee;
         }
-        .highlight-user { color: #2c3e50; font-weight: 800; }
-        .highlight-target { color: var(--accent); font-weight: 800; }
+        .p-role { font-size: 0.75rem; color: #888; margin-bottom: 4px; }
+        .p-gz { font-size: 1rem; font-weight: bold; color: #333; margin-bottom: 2px;}
+        .p-ny { font-size: 0.95rem; font-weight: 600; color: var(--accent); }
+
+        /* 運勢卡片 */
+        .fortune-item { 
+            border: 1px solid #eee; border-radius: 12px; 
+            padding: 15px; margin-bottom: 15px; background: #fff;
+        }
+        .f-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px;}
+        .f-title { font-weight: bold; font-size: 1.05rem; color: #2d3436; }
+        .f-badge { 
+            font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; 
+            color: #fff; font-weight: bold; background: #b2bec3;
+        }
         
-        .footer { text-align: center; font-size: 0.8rem; color: #bbb; margin-top: 30px; margin-bottom: 20px;}
+        .scene-box {
+            background: #f1f2f6; padding: 12px; border-radius: 8px; margin: 10px 0;
+            font-weight: 600; color: #2d3436; font-size: 0.95rem;
+            border-left: 4px solid #a29bfe;
+        }
+        .f-text { font-size: 0.95rem; color: #555; text-align: justify; line-height: 1.7; }
+        .f-text strong { color: #2d3436; }
+        
+        .lucky-tip {
+            margin-top: 12px; font-size: 0.9rem; background: #fff8e1; 
+            padding: 10px; border-radius: 8px; color: #d35400; display: flex; gap: 6px;
+        }
+
+        .hidden { display: none; }
+        #loading-msg { text-align: center; color: #888; margin-top: 10px; display: none; }
+        
+        /* 強弱標籤 */
+        .strength-tag { font-size: 0.7rem; background: #eee; padding: 1px 4px; border-radius: 3px; color: #666; vertical-align: middle; margin-left: 4px; }
     </style>
 </head>
-<body onload="init()">
+<body>
 
 <div class="container">
-    <h1>📅 納音五行運勢指南</h1>
-    
-    <div class="card">
-        <h2>今日天地氣場</h2>
+    <!-- 1. 今日氣場 (最上方顯示) -->
+    <div class="today-card">
+        <div class="today-title">📅 今日納音氣場</div>
         <div class="today-grid">
-            <div class="pillar-box">
-                <div class="pillar-title">流年 (大環境)</div>
-                <div class="pillar-ny" id="todayYearNY"></div>
+            <div class="t-box">
+                <div class="t-label">流年 (根基)</div>
+                <div class="t-val" id="tY_NY">--</div>
             </div>
-            <div class="pillar-box">
-                <div class="pillar-title">流月 (事業宮)</div>
-                <div class="pillar-ny" id="todayMonthNY"></div>
+            <div class="t-box">
+                <div class="t-label">流月 (環境)</div>
+                <div class="t-val" id="tM_NY">--</div>
             </div>
-            <div class="pillar-box">
-                <div class="pillar-title">流日 (今日運)</div>
-                <div class="pillar-ny" id="todayDayNY"></div>
+            <div class="t-box">
+                <div class="t-label">流日 (機遇)</div>
+                <div class="t-val" id="tD_NY">--</div>
             </div>
         </div>
     </div>
 
     <div class="card">
-        <div class="input-group">
-            <label>請輸入您的國曆生日，分析今日契合度</label>
+        <h2>👤 輸入生日查看意象</h2>
+        <div class="input-area">
             <input type="date" id="birthdate">
+            <button onclick="startAnalysis()">🔮 啟動意象分析</button>
+            <div id="loading-msg">正在比對納音強弱關係...</div>
         </div>
-        <button onclick="analyze()">開始分析我的運勢</button>
     </div>
 
-    <div id="result">
+    <div id="result-area" class="hidden">
         
+        <!-- 命盤 -->
         <div class="card">
-            <h2>👤 您的納音命格</h2>
-            <div style="text-align: center; margin-bottom: 15px;">
-                <span style="font-size: 1.8rem; font-weight: 800; color: var(--primary);" id="userDayNY"></span>
-                <div style="font-size: 0.9rem; color: #888; margin-top: 5px;">您屬於日柱納音</div>
+            <h2>🧬 您的納音結構</h2>
+            <div class="pillars-grid">
+                <div class="p-box">
+                    <div class="p-role">年柱 (本質)</div>
+                    <div class="p-gz" id="uY_GZ">--</div>
+                    <div class="p-ny" id="uY_NY">--</div>
+                </div>
+                <div class="p-box">
+                    <div class="p-role">月柱 (內心)</div>
+                    <div class="p-gz" id="uM_GZ">--</div>
+                    <div class="p-ny" id="uM_NY">--</div>
+                </div>
+                <div class="p-box">
+                    <div class="p-role">日柱 (外在)</div>
+                    <div class="p-gz" id="uD_GZ">--</div>
+                    <div class="p-ny" id="uD_NY">--</div>
+                </div>
             </div>
-            <div id="userDesc" class="nayin-explanation" style="background: #eef2f7; border-left-color: #2c3e50;"></div>
+            <div id="personality-text" class="f-text" style="background:#f9f9f9; padding:10px; border-radius:8px;"></div>
         </div>
 
+        <!-- 宏觀運勢 -->
         <div class="card">
-            <h2>🔮 流年與流月運勢</h2>
-            <div id="annualMonthlyFortune"></div>
+            <h2>🌏 流年與流月運勢</h2>
+            <div id="macro-content"></div>
         </div>
 
+        <!-- 今日細項 -->
         <div class="card">
-            <h2>🍀 今日運勢詳解</h2>
-            <div id="dailyFortuneList"></div>
+            <h2>🌞 今日運勢細項</h2>
+            <div id="daily-content"></div>
         </div>
-
     </div>
-
-    <div class="footer">Professional Na-Yin Astrology Analysis</div>
 </div>
 
 <script>
-    // 納音五行白話特質庫
-    const NaYinTraits = {
-        "海中金": "深藏不露的潛力，如海底寶藏，需要被發掘。",
-        "爐中火": "熱情如火，具有強大的感染力，能溫暖周遭。",
-        "大林木": "枝葉繁茂，心胸寬廣，如大樹般庇蔭他人。",
-        "路旁土": "腳踏實地，默默付出，是眾人倚賴的基石。",
-        "劍鋒金": "銳利果決，執行力極強，能斬斷一切阻礙。",
-        "山頭火": "光芒四射，志向高遠，如山頂日出般耀眼。",
-        "澗下水": "智慧深遠，處事圓融，如細水長流般堅韌。",
-        "城頭土": "穩如泰山，防禦力強，給人極大的安全感。",
-        "白蠟金": "質地純淨，可塑性高，善於適應各種變化。",
-        "楊柳木": "身段柔軟，隨風而動，具有極佳的交際手腕。",
-        "泉中水": "源源不絕，心思靈巧，擁有豐富的精神內涵。",
-        "屋上土": "堅守崗位，誠信可靠，具有強烈的責任心。",
-        "霹靂火": "雷霆萬鈞，爆發力強，適合開創性的挑戰。",
-        "松柏木": "傲雪凌霜，意志堅定，在逆境中更能成長。",
-        "長流水": "滔滔不絕，活躍奔放，人脈與資源流動快。",
-        "沙中土": "外表樸實，內蘊光華，歷經淘洗方顯價值。",
-        "天上火": "光明磊落，公正無私，具有天生的領導風範。",
-        "石榴木": "外剛內柔，碩果累累，家庭與事業皆能豐收。",
-        "平地木": "平易近人，廣結善緣，是團隊中的和平使者。",
-        "壁上土": "依附強者，借力使力，在穩定平台能發揮所長。",
-        "金箔金": "外表光鮮，注重形象，在人群中總是亮眼。",
-        "覆燈火": "點亮黑夜，犧牲奉獻，常成為他人的指路明燈。",
-        "天河水": "氣勢磅礴，恩澤廣被，具有高遠的智慧與格局。",
-        "大驛土": "四通八達，奔波四方，在變動中創造財富。",
-        "釵釧金": "精緻優雅，氣質出眾，天生帶有貴族氣息。",
-        "桑柘木": "實用之材，能屈能伸，在任何環境都能生存。",
-        "大溪水": "驚濤駭浪，心機深沉，擁有強大的謀略能力。",
-        "沙中金": "沙裡淘金，去蕪存菁，成功需要時間的淬鍊。",
-        "大海水": "包容萬物，深不可測，擁有統御百川的氣量。"
+    // ===========================================================
+    // 1. 納音核心資料庫 (包含繁簡對照、強度、具象)
+    // ===========================================================
+    // Strength: 1(極弱) ~ 5(極強)
+    // Type: 用於生成語句的分類
+    const DB = {
+        // --- 金 ---
+        "海中金": { el: "金", str: 2, img: "深海寶藏", desc: "深藏海底，含蓄內斂" }, 
+        "劍鋒金": { el: "金", str: 5, img: "倚天利刃", desc: "鋒利無比，無堅不摧" },
+        "白蠟金": { el: "金", str: 1, img: "礦石原金", desc: "未經鍛造，質地軟弱" },
+        "沙中金": { el: "金", str: 3, img: "沙裡淘金", desc: "混於沙石，需經淘洗" },
+        "金箔金": { el: "金", str: 1, img: "金箔貼紙", desc: "薄如蟬翼，裝飾為主" },
+        "釵釧金": { el: "金", str: 2, img: "金銀首飾", desc: "柔美成器，不耐重擊" },
+
+        // --- 木 ---
+        "桑柘木": { el: "木", str: 3, img: "桑樹良材", desc: "用途廣泛，剛柔並濟" },
+        "松柏木": { el: "木", str: 5, img: "傲雪松柏", desc: "堅毅挺拔，不畏嚴寒" },
+        "大林木": { el: "木", str: 4, img: "原始森林", desc: "枝葉繁茂，鬱鬱蔥蔥" },
+        "楊柳木": { el: "木", str: 2, img: "河畔楊柳", desc: "隨風飄蕩，柔順彎曲" },
+        "石榴木": { el: "木", str: 3, img: "石榴果樹", desc: "性辛如火，外剛內秀" },
+        "平地木": { el: "木", str: 2, img: "初生草木", desc: "根基未穩，需要呵護" },
+
+        // --- 水 ---
+        "澗下水": { el: "水", str: 2, img: "山間清泉", desc: "清澈透明，涓涓細流" },
+        "大溪水": { el: "水", str: 4, img: "驚濤駭浪", desc: "奔騰不息，氣勢磅礴" },
+        "長流水": { el: "水", str: 3, img: "長江大河", desc: "源遠流長，綿延不絕" },
+        "天河水": { el: "水", str: 5, img: "天上雨露", desc: "普降甘霖，無私奉獻" },
+        "井泉水": { el: "水", str: 2, img: "井底深泉", desc: "冷冽甘甜，深不可測" },
+        "大海水": { el: "水", str: 5, img: "浩瀚汪洋", desc: "納百川，包容萬物" },
+
+        // --- 火 ---
+        "爐中火": { el: "火", str: 4, img: "爐中烈火", desc: "聚集燃燒，冶煉萬物" },
+        "山頭火": { el: "火", str: 3, img: "山頂夕照", desc: "光芒四射，瞬間爆發" },
+        "霹靂火": { el: "火", str: 5, img: "雷霆閃電", desc: "剛烈暴躁，聲勢驚人" },
+        "山下火": { el: "火", str: 2, img: "螢火微光", desc: "溫暖含蓄，不易察覺" },
+        "覆燈火": { el: "火", str: 2, img: "佛前油燈", desc: "夜間照明，專注指引" },
+        "天上火": { el: "火", str: 5, img: "豔陽烈日", desc: "公正無私，普照大地" },
+
+        // --- 土 ---
+        "路旁土": { el: "土", str: 3, img: "路邊塵土", desc: "隨和寬厚，滋養萬物" },
+        "城頭土": { el: "土", str: 4, img: "防禦高牆", desc: "厚重固守，原則性強" },
+        "屋上土": { el: "土", str: 2, img: "瓦片之土", desc: "遮風避雨，成就有限" },
+        "壁上土": { el: "土", str: 2, img: "粉牆之土", desc: "依附棟樑，缺乏獨立" },
+        "大驛土": { el: "土", str: 4, img: "通達大道", desc: "承載厚重，胸襟廣闊" },
+        "沙中土": { el: "土", str: 2, img: "流動之沙", desc: "變化多端，聚散無常" }
     };
 
-    // 取得納音五行屬性 (取最後一個字)
-    function getElement(nayin) {
-        return nayin.slice(-1);
-    }
+    // 繁簡對照與別名映射
+    const ALIAS = {
+        "剑锋金": "劍鋒金", "白蜡金": "白蠟金", "钗钏金": "釵釧金",
+        "杨柳木": "楊柳木", "涧下水": "澗下水", "长流水": "長流水", "泉中水": "井泉水",
+        "炉中火": "爐中火", "山头火": "山頭火", "霹雳火": "霹靂火", "佛燈火": "覆燈火",
+        "城头土": "城頭土", "大驿土": "大驛土", "金薄金": "金箔金"
+    };
 
-    // 判斷互動關係 (核心邏輯，不使用術語，轉為內部代碼)
-    function getInteractionCode(userEl, targetEl) {
-        // userEl 是命主(我)，targetEl 是流日(環境)
-        if (userEl === targetEl) return "SAME"; // 比旺
-        
-        // 生我者 (環境生我)
-        if ((targetEl === "金" && userEl === "水") || 
-            (targetEl === "水" && userEl === "木") || 
-            (targetEl === "木" && userEl === "火") || 
-            (targetEl === "火" && userEl === "土") || 
-            (targetEl === "土" && userEl === "金")) return "SUPPORT";
+    const RELATION_MAP = {
+        "金": { "金":"比和", "木":"我剋", "水":"我生", "火":"剋我", "土":"生我" },
+        "木": { "金":"剋我", "木":"比和", "水":"生我", "火":"我生", "土":"我剋" },
+        "水": { "金":"生我", "木":"我生", "水":"比和", "火":"我剋", "土":"剋我" },
+        "火": { "金":"我剋", "木":"生我", "水":"剋我", "火":"比和", "土":"我生" },
+        "土": { "金":"我生", "木":"剋我", "水":"我剋", "火":"生我", "土":"比和" }
+    };
+
+    let todayData = {};
+
+    // ===========================================================
+    // 2. 初始化與今日資料抓取
+    // ===========================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('birthdate').valueAsDate = new Date();
+        initToday();
+    });
+
+    function initToday() {
+        try {
+            const now = new Date();
+            const lunar = Solar.fromYmd(now.getFullYear(), now.getMonth()+1, now.getDate()).getLunar();
             
-        // 我生者 (我生環境)
-        if ((userEl === "金" && targetEl === "水") || 
-            (userEl === "水" && targetEl === "木") || 
-            (userEl === "木" && targetEl === "火") || 
-            (userEl === "火" && targetEl === "土") || 
-            (userEl === "土" && targetEl === "金")) return "OUTPUT";
-            
-        // 我剋者 (我剋環境 - 財)
-        if ((userEl === "金" && targetEl === "木") || 
-            (userEl === "木" && targetEl === "土") || 
-            (userEl === "土" && targetEl === "水") || 
-            (userEl === "水" && targetEl === "火") || 
-            (userEl === "火" && targetEl === "金")) return "CONTROL";
-            
-        // 剋我者 (環境剋我 - 壓)
-        return "PRESSURE";
-    }
+            todayData = {
+                y: lunar.getYearNaYin(),
+                m: lunar.getMonthNaYin(),
+                d: lunar.getDayNaYin()
+            };
 
-    let todayInfo = {};
-
-    function init() {
-        const now = new Date();
-        const solar = Solar.fromYmd(now.getFullYear(), now.getMonth() + 1, now.getDate());
-        const lunar = solar.getLunar();
-        const eightChar = lunar.getEightChar();
-
-        todayInfo = {
-            yNY: eightChar.getYearNaYin(),
-            mNY: eightChar.getMonthNaYin(),
-            dNY: eightChar.getDayNaYin(),
-        };
-
-        document.getElementById('todayYearNY').innerText = todayInfo.yNY;
-        document.getElementById('todayMonthNY').innerText = todayInfo.mNY;
-        document.getElementById('todayDayNY').innerText = todayInfo.dNY;
-    }
-
-    function analyze() {
-        const input = document.getElementById('birthdate').value;
-        if (!input) return alert("請先選擇出生日期");
-
-        const parts = input.split('-');
-        const solar = Solar.fromYmd(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
-        const lunar = solar.getLunar();
-        const eightChar = lunar.getEightChar();
-
-        const userNY = eightChar.getDayNaYin();
-
-        // 1. 顯示命主
-        document.getElementById('userDayNY').innerText = userNY;
-        document.getElementById('userDesc').innerText = NaYinTraits[userNY] || "獨特的納音命格，擁有不凡的潛質。";
-
-        // 2. 顯示流年/流月
-        const annualList = document.getElementById('annualMonthlyFortune');
-        annualList.innerHTML = "";
-        annualList.innerHTML += generateCard("流年氣場 (大趨勢)", userNY, todayInfo.yNY);
-        annualList.innerHTML += generateCard("流月能量 (事業/心情)", userNY, todayInfo.mNY);
-
-        // 3. 顯示流日詳細運勢
-        document.getElementById('dailyFortuneList').innerHTML = generateDailyDetails(userNY, todayInfo.dNY);
-
-        // 顯示結果
-        document.getElementById('result').style.display = 'block';
-        document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    // 通用卡片生成 (用於年/月)
-    function generateCard(title, userNY, targetNY) {
-        const userEl = getElement(userNY);
-        const targetEl = getElement(targetNY);
-        const code = getInteractionCode(userEl, targetEl);
-        
-        let tag = "平";
-        let desc = "";
-        let logic = "";
-
-        // 專業但通俗的解釋
-        switch(code) {
-            case "SUPPORT": // 印
-                tag = "大吉";
-                desc = "今年的氣場對你非常友善，就像順水推舟，容易遇到貴人提攜，或是獲得資源上的幫助。";
-                logic = `流年的【<span class="highlight-target">${targetNY}</span>】屬${targetEl}，來滋養你的【<span class="highlight-user">${userNY}</span>】屬${userEl}。五行相生，代表環境主動給予支持，適合學習、進修或尋求長輩協助。`;
-                break;
-            case "SAME": // 比
-                tag = "吉";
-                desc = "能量場與你共振，適合拓展社交圈，與人合作能發揮大於二的效果，但也需注意良性競爭。";
-                logic = `流年的【<span class="highlight-target">${targetNY}</span>】與你的【<span class="highlight-user">${userNY}</span>】同屬${userEl}。氣息相通，代表結盟與競爭並存，是擴大影響力的好時機。`;
-                break;
-            case "CONTROL": // 財
-                tag = "中吉";
-                desc = "這是充滿機會的一年，但需要你主動去爭取。雖然會比較忙碌，但努力後的收穫會非常豐碩。";
-                logic = `你的【<span class="highlight-user">${userNY}</span>】屬${userEl}，去主導流年的【<span class="highlight-target">${targetNY}</span>】屬${targetEl}。這代表「我所掌控者為成果」，機會雖多，但必須親力親為才能轉化為實質利益。`;
-                break;
-            case "OUTPUT": // 食傷
-                tag = "平";
-                desc = "你的才華與能力有發揮的空間，適合表現自己。但因為這需要消耗你的能量，容易感到疲憊。";
-                logic = `你的【<span class="highlight-user">${userNY}</span>】屬${userEl}，去生助流年的【<span class="highlight-target">${targetNY}</span>】屬${targetEl}。這是一種「能量輸出」的狀態，適合創作與給予，但要注意休息，避免過度透支。`;
-                break;
-            case "PRESSURE": // 官殺
-                tag = "凶";
-                desc = "大環境對你形成一種約束力，可能會感到壓力和挑戰增加。建議低調行事，遵守規則為上策。";
-                logic = `流年的【<span class="highlight-target">${targetNY}</span>】屬${targetEl}，來剋制你的【<span class="highlight-user">${userNY}</span>】屬${userEl}。五行相剋，代表環境對你的考驗，雖有壓力，但也是磨練心性、自我約束的時刻。`;
-                break;
+            // 轉換顯示為繁體 (透過 DB 查找)
+            document.getElementById('tY_NY').textContent = normalize(todayData.y);
+            document.getElementById('tM_NY').textContent = normalize(todayData.m);
+            document.getElementById('tD_NY').textContent = normalize(todayData.d);
+        } catch (e) {
+            console.log("Library loading...");
+            setTimeout(initToday, 500);
         }
-
-        return `
-            <div class="fortune-item">
-                <div class="fortune-header">
-                    <span class="fortune-title">${title}</span>
-                    <span class="tag tag-${tag}">${tag}</span>
-                </div>
-                <div class="fortune-content">${desc}</div>
-                <div class="nayin-explanation">${logic}</div>
-            </div>
-        `;
     }
 
-    // 生成流日詳細運勢 (愛情/事業/財運)
-    function generateDailyDetails(userNY, dayNY) {
-        const userEl = getElement(userNY);
-        const targetEl = getElement(dayNY);
-        const code = getInteractionCode(userEl, targetEl);
-        
-        let html = "";
-        const categories = [
-            { title: "💘 愛情運勢", type: "love" },
-            { title: "💼 事業運勢", type: "career" },
-            { title: "💰 財富運勢", type: "wealth" }
-        ];
+    function normalize(name) {
+        if (DB[name]) return name;
+        if (ALIAS[name]) return ALIAS[name];
+        // 前綴匹配
+        for (let key in DB) {
+            if (name.startsWith(key.substring(0, 2))) return key;
+        }
+        return name;
+    }
 
-        const contentMap = {
-            "SUPPORT": { // 被生 (印)
-                love: { grade: "大吉", text: "今日感情溫馨甜蜜，伴侶或心儀對象會給你很多關心與支持，適合談心。" },
-                career: { grade: "大吉", text: "貴人運旺，工作上容易得到上司或前輩的指導，難題能迎刃而解，適合提案。" },
-                wealth: { grade: "吉", text: "財運穩定，適合進行長期的理財規劃，或者投資在自我學習上，回收會很高。" }
+    // ===========================================================
+    // 3. 分析邏輯 (強弱互動核心)
+    // ===========================================================
+    function startAnalysis() {
+        if (typeof Solar === 'undefined') return alert("系統核心載入中，請稍後再按...");
+        
+        const dStr = document.getElementById('birthdate').value;
+        if (!dStr) return;
+
+        document.getElementById('loading-msg').style.display = 'block';
+        document.getElementById('result-area').classList.add('hidden');
+
+        if(!todayData.y) initToday();
+
+        setTimeout(() => {
+            try {
+                const [y,m,d] = dStr.split('-').map(Number);
+                const lunar = Solar.fromYmd(y,m,d).getLunar();
+                
+                const user = {
+                    yGZ: lunar.getYearInGanZhi(), yNY: lunar.getYearNaYin(),
+                    mGZ: lunar.getMonthInGanZhi(), mNY: lunar.getMonthNaYin(),
+                    dGZ: lunar.getDayInGanZhi(), dNY: lunar.getDayNaYin()
+                };
+
+                renderPillars(user);
+                renderMacro(user);
+                renderDaily(user);
+
+                document.getElementById('result-area').classList.remove('hidden');
+                document.getElementById('loading-msg').style.display = 'none';
+                document.getElementById('result-area').scrollIntoView({behavior:'smooth'});
+            } catch (e) {
+                alert("分析錯誤: " + e.message);
+            }
+        }, 300);
+    }
+
+    function renderPillars(u) {
+        // 顯示柱子
+        setTxt('uY_GZ', u.yGZ); setTxt('uY_NY', normalize(u.yNY));
+        setTxt('uM_GZ', u.mGZ); setTxt('uM_NY', normalize(u.mNY));
+        setTxt('uD_GZ', u.dGZ); setTxt('uD_NY', normalize(u.dNY));
+
+        // 人格描述
+        const yInfo = getData(u.yNY);
+        const mInfo = getData(u.mNY);
+        const dInfo = getData(u.dNY);
+
+        document.getElementById('personality-text').innerHTML = 
+            `<b>🌟 核心本質 (年)：【${normalize(u.yNY)}】${yInfo.img}</b><br>您的靈魂底色如同${yInfo.desc}，這決定了您人生的大方向。<br><br>` +
+            `<b>🌙 內在動機 (月)：【${normalize(u.mNY)}】${mInfo.img}</b><br>您的情感需求如同${mInfo.desc}，這是您安全感的來源。<br><br>` +
+            `<b>🎭 外在行為 (日)：【${normalize(u.dNY)}】${dInfo.img}</b><br>您對外的處事風格如同${dInfo.desc}，這是別人眼中的您。`;
+    }
+
+    // ===========================================================
+    // 4. 意象生成引擎 (關鍵邏輯修改)
+    // ===========================================================
+    function getData(name) {
+        name = normalize(name);
+        return DB[name] || { el:"土", str:2, img:"未知意象", desc:"資料解析中" };
+    }
+
+    // 核心：強弱互動分析 (顯名化 + 邏輯解釋)
+    function analyzeInteraction(meName, otherName) {
+        const meNameNorm = normalize(meName);
+        const otherNameNorm = normalize(otherName);
+        const me = getData(meNameNorm);
+        const other = getData(otherNameNorm);
+        const rel = RELATION_MAP[me.el][other.el];
+
+        let res = { grade: "平", color: "#b2bec3", title: "", scene: "", logic: "" };
+        
+        // 通用變數：標籤 (用於顯示在解釋中)
+        const meLabel = `您的【${meNameNorm}】(${me.img})`;
+        const otherLabel = `流運的【${otherNameNorm}】(${other.img})`;
+
+        // 邏輯解釋庫 (為什麼會這樣？)
+        const reason = {
+            "我生": {
+                "金水": "金屬鎔化或挖掘渠道，能疏通水源。",
+                "水木": "水流滋潤根系，助草木生長。",
+                "木火": "木材燃燒助長火勢，自我犧牲成就光亮。",
+                "火土": "火燒成灰轉化為土，能量沉澱為基石。",
+                "土金": "土層深厚孕育礦脈，保護並產出金屬。"
             },
-            "SAME": { // 同類 (比)
-                love: { grade: "吉", text: "社交運不錯，單身者容易在聚會中認識新朋友。有伴者適合與另一半像朋友般輕鬆相處。" },
-                career: { grade: "吉", text: "團隊合作運勢佳，適合與同事腦力激盪。但要留意不要固執己見，多聽他人意見。" },
-                wealth: { grade: "平", text: "容易有社交支出，例如請客吃飯。雖有人脈帶來的消息，但不宜涉及金錢借貸。" }
-            },
-            "CONTROL": { // 我剋 (財)
-                love: { grade: "平", text: "感情上你佔據主導權，但別太強勢。多一點溫柔的付出，關係會更和諧。" },
-                career: { grade: "吉", text: "工作效率高，執行力強，適合衝刺業績或完成艱難任務，成果清晰可見。" },
-                wealth: { grade: "大吉", text: "今日財氣極佳！機會掌握在你手中，適合主動尋求商機或談判，付出必有回報。" }
-            },
-            "OUTPUT": { // 我生 (食傷)
-                love: { grade: "吉", text: "你的魅力無法擋，適合主動表達愛意或製造浪漫驚喜，對方會被你的才華吸引。" },
-                career: { grade: "平", text: "創意源源不絕，適合企劃或發表演說。但要注意別太過理想化，需考量現實執行面。" },
-                wealth: { grade: "平", text: "容易憑感覺消費，要注意衝動購物。財運平平，適合用專業技能換取報酬。" }
-            },
-            "PRESSURE": { // 剋我 (官殺)
-                love: { grade: "凶", text: "今日容易感到壓力，與伴侶溝通時避免情緒化。單身者可能會遇到不合適的爛桃花。" },
-                career: { grade: "凶", text: "職場上挑戰較多，容易受到嚴格檢視。建議謹言慎行，專注於份內工作，不出錯就是贏。" },
-                wealth: { grade: "凶", text: "氣場受壓，判斷力易受干擾，不宜進行高風險投資或賭博，保守儲蓄為上。" }
+            "生我": {
+                "金水": "金氣生水，您獲得了源頭活水的資助。",
+                "水木": "水來養木，您獲得了滋養與成長的資源。",
+                "木火": "木來生火，您獲得了燃料，動力大增。",
+                "火土": "火來生土，您獲得了溫暖與轉化的力量。",
+                "土金": "土來生金，您獲得了穩固的靠山與資源。"
             }
         };
 
-        const data = contentMap[code];
+        // 1. 我剋 (我去掌控)
+        if (rel === "我剋") {
+            if (me.str >= 4 && other.str <= 2) {
+                // 強剋弱 -> 修剪成功
+                res.grade = "大吉"; res.color = "#00b894"; res.title = "修剪成材";
+                res.scene = `${meLabel} 精準地修飾了 ${otherLabel}`;
+                res.logic = `這就像**利劍修剪多餘的枝葉**。因為您的${me.el}氣場強旺，而對方的${other.el}氣場較弱，您擁有足夠的能力去掌控局勢，能將混亂的資源整理出價值，成果豐碩。`;
+            } else if (me.str <= 2 && other.str >= 4) {
+                // 弱剋強 -> 反受其辱
+                res.grade = "凶"; res.color = "#d63031"; res.title = "鈍刀伐木";
+                res.scene = `${meLabel} 試圖撼動龐大的 ${otherLabel}`;
+                res.logic = `這就像**拿小刀去砍參天大樹**。您的${me.el}氣場相對微弱，無法駕馭強大的${other.el}能量，強行主導反而會讓自己的工具受損。這段時間不宜強出頭。`;
+            } else {
+                // 勢均力敵
+                res.grade = "中吉"; res.color = "#0984e3"; res.title = "勢在必得";
+                res.scene = `${meLabel} 正努力去駕馭 ${otherLabel}`;
+                res.logic = `雙方力量相當，雖然能夠掌控，但需要付出相當的努力。這是一個需要專注與堅持的過程。`;
+            }
+        }
+        
+        // 2. 剋我 (外在壓力)
+        else if (rel === "剋我") {
+            if (other.el === "火" && me.el === "金") {
+                // 火煉金 (特殊吉)
+                res.grade = "吉"; res.color = "#0984e3"; res.title = "烈火煉金";
+                res.scene = `${otherLabel} 正在高溫鍛造您的 ${meLabel}`;
+                res.logic = `雖然壓力巨大，但這正是**脫胎換骨**的機會。火能去除金的雜質，經過這番考驗，您的價值將會倍增。`;
+            } else if (other.str >= 4 && me.str <= 2) {
+                // 強剋弱 -> 泰山壓頂
+                res.grade = "大凶"; res.color = "#d63031"; res.title = "遭受重擊";
+                res.scene = `強勢的 ${otherLabel} 無情地壓制了 ${meLabel}`;
+                res.logic = `這就像**狂風暴雨摧殘幼苗**。外在${other.el}氣場極強，對您的${me.el}形成絕對壓制。建議暫時隱忍，尋找掩護。`;
+            } else if (other.str <= 2 && me.str >= 4) {
+                // 弱剋強 -> 隔靴搔癢
+                res.grade = "小吉"; res.color = "#fab1a0"; res.title = "微受干擾";
+                res.scene = `微弱的 ${otherLabel} 試圖限制強大的 ${meLabel}`;
+                res.logic = `外在的阻力微不足道，就像**蚊蟲叮咬**。雖然有些煩人，但無法真正撼動您的根基。保持自信，繼續前行即可。`;
+            } else {
+                res.grade = "凶"; res.color = "#fab1a0"; res.title = "受到限制";
+                res.scene = `${otherLabel} 限制了 ${meLabel} 的發揮`;
+                res.logic = `環境對您有所限制，感覺施展不開。建議採取保守策略。`;
+            }
+        }
 
-        // 生成三個區塊
-        categories.forEach(cat => {
-            const item = data[cat.type];
-            html += `
-                <div class="fortune-item">
-                    <div class="fortune-header">
-                        <span class="fortune-title">${cat.title}</span>
-                        <span class="tag tag-${item.grade}">${item.grade}</span>
-                    </div>
-                    <div class="fortune-content">${item.text}</div>
-                </div>
-            `;
-        });
+        // 3. 生我 (獲得資源)
+        else if (rel === "生我") {
+            const why = reason["生我"][other.el + me.el] || "五行相生，能量傳遞。";
+            if (other.str >= 4) {
+                res.grade = "大吉"; res.color = "#00b894"; res.title = "甘霖滋潤";
+                res.scene = `豐沛的 ${otherLabel} 源源不絕地滋養 ${meLabel}`;
+                res.logic = `這就像**久旱逢甘霖**。${why}資源與貴人主動來到面前，您無需費力爭取就能獲得支持。`;
+            } else {
+                res.grade = "吉"; res.color = "#00b894"; res.title = "小有助益";
+                res.scene = `${otherLabel} 給予 ${meLabel} 溫暖的支持`;
+                res.logic = `雖然不是巨大的財富，但${why}，讓您感到舒適安心。`;
+            }
+        }
 
-        // 最後加上總結性的納音互動解釋
-        html += `
-            <div class="nayin-explanation" style="margin-top: 15px;">
-                <strong>🌟 納音能量解碼：</strong><br>
-                今日是【<span class="highlight-target">${dayNY}</span>】日，與您的【<span class="highlight-user">${userNY}</span>】形成
-                <span style="color:var(--primary); font-weight:bold;">
-                    ${code === "SUPPORT" ? "「能量滋養」" : 
-                      code === "SAME" ? "「能量共振」" : 
-                      code === "CONTROL" ? "「主導掌控」" : 
-                      code === "OUTPUT" ? "「能量釋放」" : "「環境試煉」"}
-                </span>之局。
-                <br><br>
-                ${
-                    code === "SUPPORT" ? `水能生木，木能生火... 今日五行相生，環境資源流向您，做事會覺得特別順手。` :
-                    code === "SAME" ? `金見金，木見木... 屬性相同，聲氣相求，是結伴同行的好日子。` :
-                    code === "CONTROL" ? `金剋木，木剋土... 您去剋制今日氣場，代表您需要付出努力去駕馭機會，雖累但有成。` :
-                    code === "OUTPUT" ? `水生木，木生火... 您去生助今日氣場，才華得以展現，但切記不要過度消耗自己。` :
-                    `火剋金，金剋木... 環境氣場剋制您，雖然阻力較大，但正是磨練耐心與定性的時刻。`
-                }
+        // 4. 我生 (付出展現)
+        else if (rel === "我生") {
+            const why = reason["我生"][me.el + other.el] || "五行流轉，能量輸出。";
+            if (me.str <= 2) {
+                res.grade = "凶"; res.color = "#fdcb6e"; res.title = "消耗過度";
+                res.scene = `虛弱的 ${meLabel} 勉強去支撐 ${otherLabel}`;
+                res.logic = `這就像**泥菩薩過江**，自身難保還想救人。${why}但過度的付出已經透支了您的能量，建議先照顧好自己。`;
+            } else {
+                res.grade = "平"; res.color = "#ffeaa7"; res.title = "才華展現";
+                res.scene = `您燃燒 ${meLabel} 的能量去成就 ${otherLabel}`;
+                res.logic = `這是一種付出的格局。${why}您將精力投入到創作或服務中，雖然身體疲憊，但能獲得名聲與成就感。`;
+            }
+        }
+
+        // 5. 比和 (同類互動)
+        else { 
+            if (me.str >= 4 && other.str >= 4) {
+                res.grade = "凶"; res.color = "#d63031"; res.title = "兩強相爭";
+                res.scene = `強勢的 ${meLabel} 遇上了同樣強硬的 ${otherLabel}`;
+                res.logic = `這就像**兩把寶劍互砍**，必有損傷。同類之間競爭激烈，互不相讓，容易引發口角。建議保持距離，各行其道。`;
+            } else {
+                res.grade = "吉"; res.color = "#0984e3"; res.title = "攜手同行";
+                res.scene = `${meLabel} 與 ${otherLabel} 相互輝映`;
+                res.logic = `如同**百川匯海**，力量加倍。適合尋找合作夥伴，團隊合作能讓事情進展更順利。`;
+            }
+        }
+
+        return res;
+    }
+
+    // ===========================================================
+    // 5. 渲染結果
+    // ===========================================================
+    function renderMacro(u) {
+        const yRes = analyzeInteraction(u.dNY, todayData.y); // 以日柱(自我)對流年
+        const mRes = analyzeInteraction(u.mNY, todayData.m); // 以月柱(內心)對流月
+
+        document.getElementById('macro-content').innerHTML = `
+            ${genCard(`流年運勢 (${normalize(todayData.y)})`, yRes)}
+            ${genCard(`流月運勢 (${normalize(todayData.m)})`, mRes)}
+        `;
+    }
+
+    function renderDaily(u) {
+        // 愛情：日柱 vs 流日
+        const love = analyzeInteraction(u.dNY, todayData.d);
+        let loveMsg = love.grade.includes("吉") ? "💕 今日魅力加分，適合約會。" : "🛡️ 多包容對方，避免爭執。";
+
+        // 事業：月柱 vs 流日
+        const career = analyzeInteraction(u.mNY, todayData.d);
+        
+        // 財富：日柱 vs 流日 (需要特殊處理，但也需要顯示納音交互)
+        const wealth = analyzeInteraction(u.dNY, todayData.d);
+        
+        // 覆蓋財富邏輯但保留交互過程
+        const uD = getData(u.dNY);
+        const tD = getData(todayData.d);
+        const rel = RELATION_MAP[uD.el][tD.el];
+        
+        let wTitle = "財運平平";
+        // 將原本的互動邏輯保留，並加上財富解讀
+        let wLogicPrefix = `<strong>【納音交互】</strong><br>${wealth.scene}<br>${wealth.logic}<br><br><strong>【財運解讀】</strong><br>`;
+        
+        if (rel === "我剋") {
+            if (uD.str >= 3) {
+                wTitle = "財星高照"; wealth.grade = "大吉"; wealth.color = "#00b894";
+                wealth.logic = wLogicPrefix + `這是標準的「我剋者為財」。您今日對資源有極強的掌控力，適合談判、收帳、投資。`;
+            } else {
+                wTitle = "財多身弱"; wealth.grade = "凶"; wealth.color = "#d63031";
+                wealth.logic = wLogicPrefix + `看到了機會卻抓不住。勿貪圖超出能力的利益，否則反受其害。`;
+            }
+        } else if (rel === "生我") {
+             wTitle = "貴人送財"; wealth.grade = "吉"; wealth.color = "#0984e3";
+             wealth.logic = wLogicPrefix + `財富來自他人的餽贈或被動收入，得來全不費工夫。`;
+        } else {
+             wealth.logic = wLogicPrefix + `今日財運與上述納音互動狀態一致，無特殊財星照耀，宜守成。`;
+        }
+
+        document.getElementById('daily-content').innerHTML = `
+            <div class="fortune-item">
+                <div class="f-head"><span class="f-title">💘 愛情運勢</span><span class="f-badge" style="background:${love.color}">${love.grade}</span></div>
+                <div class="scene-box">🖼️ ${love.scene}</div>
+                <div class="f-text">${love.logic}</div>
+                <div class="lucky-tip">💡 建議：${loveMsg}</div>
+            </div>
+
+            <div class="fortune-item">
+                <div class="f-head"><span class="f-title">💼 事業運勢</span><span class="f-badge" style="background:${career.color}">${career.grade}</span></div>
+                <div class="scene-box">🖼️ ${career.scene}</div>
+                <div class="f-text">${career.logic}</div>
+            </div>
+
+            <div class="fortune-item">
+                <div class="f-head"><span class="f-title">💰 財富運勢：${wTitle}</span><span class="f-badge" style="background:${wealth.color}">${wealth.grade}</span></div>
+                <div class="f-text">${wealth.logic}</div>
             </div>
         `;
-
-        return html;
     }
+
+    function genCard(title, res) {
+        return `
+            <div class="fortune-item">
+                <div class="f-head"><span class="f-title">${title}：${res.title}</span><span class="f-badge" style="background:${res.color}">${res.grade}</span></div>
+                <div class="scene-box">🖼️ ${res.scene}</div>
+                <div class="f-text">${res.logic}</div>
+            </div>
+        `;
+    }
+
+    function setTxt(id, val) { document.getElementById(id).textContent = val || "--"; }
+
 </script>
 
 </body>
