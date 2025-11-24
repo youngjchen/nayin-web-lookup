@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>濟州快樂五日遊</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --jeju-orange: #FF8C00;
+            --jeju-dark: #2c3e50;
+            --text-color: #333;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            color: var(--text-color); 
+            line-height: 1.6;
+            /* 濟州島風格背景圖 */
+            background: linear-gradient(rgba(0, 50, 80, 0.3), rgba(0, 0, 0, 0.4)), 
+                        url('https://images.unsplash.com/photo-1580620857322-266185202633?q=80&w=1974&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* Hero Header */
+        header {
+            background: rgba(255, 140, 0, 0.9); /* Orange transparent */
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            border-radius: 0 0 30px 30px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        header h1 { font-size: 2.2rem; margin-bottom: 0.5rem; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        header p { font-size: 1.1rem; font-weight: 300; opacity: 0.95; }
+
+        /* Navigation */
+        .nav-container {
+            display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+            position: sticky; top: 15px; z-index: 100; padding: 0 10px;
+        }
+        .nav-btn {
+            border: none; background: rgba(255, 255, 255, 0.9); 
+            padding: 10px 18px; border-radius: 50px; 
+            font-weight: 700; color: #555; cursor: pointer; 
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            backdrop-filter: blur(5px);
+        }
+        .nav-btn.active {
+            background: var(--jeju-orange); color: white;
+            transform: scale(1.05); box-shadow: 0 4px 15px rgba(255, 140, 0, 0.5);
+        }
+
+        /* Main Content */
+        main { max-width: 800px; margin: 2rem auto; padding: 0 20px; padding-bottom: 80px;}
+        .day-section { display: none; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .day-section.active { display: block; }
+        
+        .day-title-badge {
+            display: inline-block;
+            background: var(--jeju-dark);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cards */
+        .timeline { padding-left: 20px; border-left: 3px solid rgba(255,255,255,0.5); margin-left: 10px; }
+        
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px; padding: 1.5rem;
+            margin-bottom: 1.5rem; position: relative;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease;
+        }
+        .card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.95); }
+
+        /* Timeline Dot */
+        .card::before {
+            content: ''; position: absolute; left: -30px; top: 30px;
+            width: 14px; height: 14px; border-radius: 50%;
+            background: var(--jeju-orange); border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Card Content */
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .time-badge { background: var(--jeju-orange); color: white; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; }
+        .icon { font-size: 1.5rem; }
+        
+        .place-name { font-size: 1.4rem; font-weight: 700; color: #222; margin-bottom: 4px; }
+        .place-kr { font-size: 0.9rem; color: #777; margin-bottom: 12px; font-family: sans-serif; }
+
+        /* Details Grid */
+        .details { display: grid; gap: 8px; font-size: 0.95rem; }
+        .detail-row { display: flex; align-items: baseline; gap: 8px; }
+        .label { font-weight: 600; min-width: 20px; }
+        
+        .hours-tag { color: #0077BE; font-weight: 500; background: #e3f2fd; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; display: inline-block;}
+        .star-text { color: #d35400; }
+        
+        /* Special Highlights */
+        .highlight-card { border-left: 5px solid var(--jeju-orange); }
+        .sunset-warning { 
+            background: #fff0f0; border: 1px solid #ffcdd2; 
+            color: #c62828; padding: 8px; border-radius: 8px; 
+            font-weight: bold; margin-top: 10px; display: block;
+            text-align: center;
+        }
+
+        /* Footer */
+        footer { text-align: center; padding: 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-top: auto;}
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.8rem; }
+            .card { padding: 1.2rem; }
+            .place-name { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🍊 濟州快樂五日遊</h1>
+    <p>Happy 5-Day Jeju Trip • 12/15 - 12/19</p>
+</header>
+
+<div class="nav-container">
+    <button class="nav-btn active" onclick="showDay(1)">Day 1 市區</button>
+    <button class="nav-btn" onclick="showDay(2)">Day 2 西部</button>
+    <button class="nav-btn" onclick="showDay(3)">Day 3 牛島</button>
+    <button class="nav-btn" onclick="showDay(4)">Day 4 東部</button>
+    <button class="nav-btn" onclick="showDay(5)">Day 5 花海</button>
+</div>
+
+<main id="itinerary-container">
+    <!-- JS 將會渲染內容 -->
+</main>
+
+<footer>
+    <p>Have a wonderful trip! ✈️</p>
+</footer>
+
+<script>
+    const itinerary = [
+        {
+            day: 1,
+            title: "Day 1 (一) 抵達與市區經典",
+            events: [
+                { time: "14:25 - 17:25", icon: "✈️", name: "抵達濟州機場", kr: "Jeju Airport", type: "transport" },
+                { time: "17:25 - 18:30", icon: "🚗", name: "租車 & 飯店 Check-in", kr: "Jeju Oriental Hotel", type: "hotel" },
+                { 
+                    time: "19:00 - 19:30", icon: "🍡", name: "濟州東門市場", kr: "Dongmun Market", 
+                    hours: "08:00 - 23:00 (夜市18:00起)", 
+                    star: "橘子糖葫蘆、鮑魚飯捲",
+                    note: "第一輪散步逛街"
+                },
+                { 
+                    time: "19:30 - 21:00", icon: "🍴", name: "黃金鰻魚 (晚餐)", kr: "황금장어 제주본점", 
+                    hours: "11:00 - 23:00", 
+                    star: "烤淡水鰻魚、鰻魚湯",
+                    highlight: true
+                }
+            ]
+        },
+        {
+            day: 2,
+            title: "Day 2 (二) 西部海岸與 5 間咖啡廳大挑戰",
+            events: [
+                { time: "08:30 - 09:30", icon: "🍜", name: "偶來湯麵 (早餐)", kr: "올래국수", hours: "08:30 - 15:00 (週日休)", star: "豬肉湯麵" },
+                { time: "09:30 - 10:00", icon: "🛍️", name: "Mandarin Island", kr: "만다린아일랜드", hours: "10:00 - 19:00", star: "濟州柑橘香水" },
+                { time: "10:00 - 10:20", icon: "🍟", name: "麥當勞 (小細節)", kr: "McDonald's", hours: "24H", star: "外帶薯條車上吃", note: "這就是旅行的儀式感！" },
+                { time: "11:30 - 12:30", icon: "🍜", name: "姊妹麵條 (午餐)", kr: "자매국수", hours: "09:00 - 18:00 (午休14:30-16:10)", star: "拌麵、豬肉湯麵" },
+                
+                // 咖啡廳分開列出
+                { time: "12:30 - 13:15", icon: "☕", name: "1. Team Blow", kr: "팀블로우", hours: "10:00 - 20:00", star: "海景窗邊座位、奶油拿鐵", note: "咖啡廳挑戰開始！" },
+                { time: "13:30 - 14:15", icon: "📸", name: "2. Haru Film", kr: "하루필름 애월점", hours: "10:00 - 19:00", star: "人生四格拍貼機 (海景背景)" },
+                { time: "14:30 - 15:15", icon: "🎵", name: "3. House Rec Store", kr: "하우스레코드", hours: "11:00 - 19:00", star: "烤布蕾拿鐵、黑膠唱片" },
+                { time: "15:30 - 16:15", icon: "🍹", name: "4. 休止符咖啡", kr: "카페 쉼표", hours: "09:30 - 18:30", star: "漢拏峰柑橘氣泡飲" },
+                
+                // 日落重點
+                { 
+                    time: "16:30 - 18:00", icon: "🌅", name: "5. Haejigae (日落名所)", kr: "해지개", 
+                    hours: "09:00 - 21:00", 
+                    star: "黑芝麻拿鐵、韓屋麵包",
+                    highlight: true,
+                    warning: "⚠️ 重要：請於 16:30 前抵達以卡位最佳夕陽席！"
+                },
+                { time: "18:00 - 19:30", icon: "🥩", name: "島民商會 (晚餐)", kr: "도민상회", hours: "11:00 - 23:00", star: "熟成黑豬肉、泡菜湯" }
+            ]
+        },
+        {
+            day: 3,
+            title: "Day 3 (三) 牛島、城山與質感海鮮",
+            events: [
+                { time: "09:45 - 10:45", icon: "🚢", name: "牛島潛水艇", kr: "우도잠수함", hours: "首班 09:20", note: "需提前20分鐘報到" },
+                { time: "11:30 - 13:00", icon: "🍕", name: "Sumsonai (午餐)", kr: "섬소나이", hours: "09:30 - 17:00", star: "牛島花生海鮮披薩、海鮮麵" },
+                { time: "13:00 - 15:00", icon: "🍦", name: "牛島甜點環島", kr: "Jimmy's etc.", hours: "依店家而定", star: "花生冰淇淋、花生三明治" },
+                { time: "15:30 - 17:30", icon: "⛰️", name: "城山日出峰", kr: "성산일출봉", hours: "07:30 - 19:00", star: "火山口景觀、海女表演(15:00)" },
+                { 
+                    time: "17:30 - 19:30", icon: "🐟", name: "Pigal Hoe-ok (晚餐)", kr: "피갈회옥", 
+                    hours: "12:00 - 22:00", 
+                    star: "綜合生魚片套餐、帶魚燉煮",
+                    highlight: true
+                },
+                { 
+                    time: "20:00 - 20:30", icon: "🍙", name: "海女飯捲 (外帶宵夜)", kr: "해녀김밥", 
+                    hours: "09:00 - 18:30 (週四休)", 
+                    star: "墨魚汁飯捲、全鮑魚飯捲",
+                    warning: "⚠️ 店家關得早，建議晚餐前先繞過去買！"
+                }
+            ]
+        },
+        {
+            day: 4,
+            title: "Day 4 (四) 東部海洋與海膽麵",
+            events: [
+                { time: "10:00 - 11:30", icon: "⛪", name: "涉地可支", kr: "섭지코지", hours: "全天開放", star: "海岸懸崖、糖果屋教堂" },
+                { time: "11:30 - 14:00", icon: "🐠", name: "Aqua Planet 水族館", kr: "아쿠아플라넷", hours: "09:30 - 19:00", star: "巨大水槽、海洋劇場" },
+                { time: "15:00 - 16:30", icon: "🧁", name: "Cafe Layered Jeju", kr: "카페레이어드", hours: "10:00 - 18:00", star: "英式司康、維多利亞蛋糕" },
+                { time: "17:00 - 18:30", icon: "🍜", name: "Jeju Gommak (晚餐)", kr: "곰막식당", hours: "09:30 - 21:00 (週二休)", star: "海膽湯麵、生魚片拌麵" }
+            ]
+        },
+        {
+            day: 5,
+            title: "Day 5 (五) 花海、哈瑞寶與滿載而歸",
+            events: [
+                { time: "09:00 - 10:00", icon: "🎀", name: "Hello Kitty Island", kr: "凱蒂貓主題館", hours: "09:00 - 18:00", star: "粉紅屋、凱蒂貓咖啡廳" },
+                { time: "10:30 - 12:00", icon: "🌺", name: "山茶花之丘", kr: "Camellia Hill", hours: "08:30 - 18:00", star: "冬柏花隧道 (必拍)" },
+                { time: "12:30 - 13:30", icon: "🐟", name: "滿足的商會 (午餐)", kr: "만족한상회", hours: "10:00 - 21:00", star: "去骨烤整條白帶魚" },
+                { time: "14:30 - 16:00", icon: "🐻", name: "哈瑞寶快樂世界", kr: "Haribo Happy World", hours: "10:00 - 18:00", star: "巨型小熊軟糖、互動遊戲" },
+                { time: "16:30 - 17:00", icon: "🍰", name: "Mochiron", kr: "모찌롱", hours: "11:00 - 18:00", star: "達克瓦茲禮盒" },
+                { time: "17:10 - 17:50", icon: "🎁", name: "My Jeju Gift", kr: "마이제주", hours: "09:00 - 19:00", star: "伴手禮採買" },
+                { time: "18:00 - 19:00", icon: "✈️", name: "Byronic Espresso Bar", kr: "바이러닉 에스프레소바", hours: "09:00 - 19:00", star: "看飛機起降、濃縮咖啡" },
+                { time: "22:15 ~", icon: "👋", name: "搭機返台", kr: "濟州 -> 桃園", hours: "", note: "帶著滿滿回憶回家！" }
+            ]
+        }
+    ];
+
+    const container = document.getElementById('itinerary-container');
+
+    function renderItinerary() {
+        itinerary.forEach((dayData, index) => {
+            const section = document.createElement('div');
+            section.className = `day-section ${index === 0 ? 'active' : ''}`;
+            section.id = `day-${dayData.day}`;
+            
+            const eventsHtml = dayData.events.map(event => `
+                <div class="card ${event.highlight ? 'highlight-card' : ''}">
+                    <div class="card-header">
+                        <div>
+                            <span class="time-badge">${event.time}</span>
+                            <div class="place-name" style="margin-top:8px">${event.name}</div>
+                            <div class="place-kr">${event.kr}</div>
+                        </div>
+                        <div class="icon">${event.icon}</div>
+                    </div>
+                    
+                    <div class="details">
+                        ${event.hours ? `<div class="detail-row"><span class="label">🕒</span> <span class="hours-tag">${event.hours}</span></div>` : ''}
+                        ${event.star ? `<div class="detail-row"><span class="label">⭐</span> <span class="star-text">${event.star}</span></div>` : ''}
+                        ${event.note ? `<div class="detail-row"><span class="label">📝</span> <span style="color:#555">${event.note}</span></div>` : ''}
+                        ${event.warning ? `<div class="sunset-warning">${event.warning}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            section.innerHTML = `
+                <div class="day-title-badge">${dayData.title}</div>
+                <div class="timeline">
+                    ${eventsHtml}
+                </div>
+            `;
+            container.appendChild(section);
+        });
+    }
+
+    function showDay(dayNum) {
+        // Update Buttons
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.nav-btn')[dayNum - 1].classList.add('active');
+
+        // Update Sections
+        document.querySelectorAll('.day-section').forEach(section => section.classList.remove('active'));
+        document.getElementById(`day-${dayNum}`).classList.add('active');
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    renderItinerary();
+</script>
+
+</body>
+</html>
